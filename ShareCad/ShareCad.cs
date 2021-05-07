@@ -157,11 +157,10 @@ namespace ShareCad
         {
             IEnumerable<MethodBase> TargetMethods()
             {
-                return (from type in AccessTools.GetTypesFromAssembly(Assembly.GetExecutingAssembly())
-                        where type.GetType() == typeof(SpiritMainWindow) 
-                        where type.GetMethod("NewDocument").ReturnType == typeof(EngineeringDocument)
-                        select type.GetMethod("NewDocument"))
-                        .Cast<MethodBase>();
+                return AccessTools.GetTypesFromAssembly(Assembly.GetExecutingAssembly())
+                    .Where(t => t.GetType() == typeof(SpiritMainWindow))
+                    .Select(t => t.GetMethod("NewDocument"))
+                    .Where(t => t.ReturnType == typeof(EngineeringDocument));
             }
 
             static void Postfix(MethodBase __originalMethod, ref EngineeringDocument __result)
