@@ -132,6 +132,8 @@ namespace ShareCad
             }
         }
 
+        // Kommer nok til at hooke nogle andre funktioner, da det her er lidt dumt
+
         [HarmonyPrefix]
         [HarmonyPatch(typeof(EngineeringDocument), "OpenFileAndUpdateCWDState")]
         public static void Prefix_EngineeringDocument(EngineeringDocument __instance, ref string fileName)
