@@ -122,8 +122,14 @@ namespace ShareCad
                 var harmony = new Harmony("ShareCad");
                 harmony.PatchAll(Assembly.GetExecutingAssembly());
                 WinConsole.Initialize();
-                var messageBoxResult = MessageBox.Show("Host?", "ShareCad", MessageBoxButton.YesNoCancel,
-                    MessageBoxImage.Question, MessageBoxResult.Cancel, MessageBoxOptions.DefaultDesktopOnly);
+                var messageBoxResult = MessageBox.Show("Host?", 
+                    "ShareCad", 
+                    MessageBoxButton.YesNoCancel,
+                    MessageBoxImage.Question, 
+                    MessageBoxResult.Cancel, 
+                    MessageBoxOptions.DefaultDesktopOnly
+                    );
+
                 switch (messageBoxResult)
                 {
                     case MessageBoxResult.Yes:
@@ -151,6 +157,8 @@ namespace ShareCad
             {
                 engineeringDocument = __instance;
             }
+
+            Console.Beep();
         }
 
         static bool test;
