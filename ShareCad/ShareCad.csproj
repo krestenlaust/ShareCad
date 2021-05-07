@@ -1,0 +1,150 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{88B9903C-F071-4E64-9E4B-88D763DFE636}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>ShareCad</RootNamespace>
+    <AssemblyName>ShareCad</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <RegisterForComInterop>false</RegisterForComInterop>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="0Harmony">
+      <HintPath>..\Libs\0Harmony.dll</HintPath>
+    </Reference>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="Ptc.Calculation.Core">
+      <HintPath>..\Libs\Ptc.Calculation.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Ptc.Calculation.Core.resources">
+      <HintPath>..\Libs\Ptc.Calculation.Core.resources.dll</HintPath>
+    </Reference>
+    <Reference Include="Ptc.Controls">
+      <HintPath>..\Libs\Ptc.Controls.dll</HintPath>
+    </Reference>
+    <Reference Include="Ptc.Controls.CollapsibleArea">
+      <HintPath>..\Libs\Ptc.Controls.CollapsibleArea.dll</HintPath>
+    </Reference>
+    <Reference Include="Ptc.Controls.CollapsibleArea.resources">
+      <HintPath>..\Libs\Ptc.Controls.CollapsibleArea.resources.dll</HintPath>
+    </Reference>
+    <Reference Include="Ptc.Controls.Core">
+      <HintPath>..\Libs\Ptc.Controls.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Ptc.Controls.Core.resources">
+      <HintPath>..\Libs\Ptc.Controls.Core.resources.dll</HintPath>
+    </Reference>
+    <Reference Include="Ptc.Controls.EquationControl">
+      <HintPath>..\Libs\Ptc.Controls.EquationControl.dll</HintPath>
+    </Reference>
+    <Reference Include="Ptc.Controls.EquationControl.resources">
+      <HintPath>..\Libs\Ptc.Controls.EquationControl.resources.dll</HintPath>
+    </Reference>
+    <Reference Include="Ptc.Controls.Include">
+      <HintPath>..\Libs\Ptc.Controls.Include.dll</HintPath>
+    </Reference>
+    <Reference Include="Ptc.Controls.Include.resources">
+      <HintPath>..\Libs\Ptc.Controls.Include.resources.dll</HintPath>
+    </Reference>
+    <Reference Include="Ptc.Controls.Plots">
+      <HintPath>..\Libs\Ptc.Controls.Plots.dll</HintPath>
+    </Reference>
+    <Reference Include="Ptc.Controls.Plots.resources">
+      <HintPath>..\Libs\Ptc.Controls.Plots.resources.dll</HintPath>
+    </Reference>
+    <Reference Include="Ptc.Controls.resources">
+      <HintPath>..\Libs\Ptc.Controls.resources.dll</HintPath>
+    </Reference>
+    <Reference Include="Ptc.Controls.SolveBlock">
+      <HintPath>..\Libs\Ptc.Controls.SolveBlock.dll</HintPath>
+    </Reference>
+    <Reference Include="Ptc.Controls.SolveBlock.resources">
+      <HintPath>..\Libs\Ptc.Controls.SolveBlock.resources.dll</HintPath>
+    </Reference>
+    <Reference Include="Ptc.Controls.Text">
+      <HintPath>..\Libs\Ptc.Controls.Text.dll</HintPath>
+    </Reference>
+    <Reference Include="Ptc.Controls.Text.resources">
+      <HintPath>..\Libs\Ptc.Controls.Text.resources.dll</HintPath>
+    </Reference>
+    <Reference Include="Ptc.Controls.Whiteboard">
+      <HintPath>..\Libs\Ptc.Controls.Whiteboard.dll</HintPath>
+    </Reference>
+    <Reference Include="Ptc.Controls.Whiteboard.resources">
+      <HintPath>..\Libs\Ptc.Controls.Whiteboard.resources.dll</HintPath>
+    </Reference>
+    <Reference Include="Ptc.Controls.Worksheet">
+      <HintPath>..\Libs\Ptc.Controls.Worksheet.dll</HintPath>
+    </Reference>
+    <Reference Include="Ptc.Controls.Worksheet.resources">
+      <HintPath>..\Libs\Ptc.Controls.Worksheet.resources.dll</HintPath>
+    </Reference>
+    <Reference Include="Ptc.Core">
+      <HintPath>..\Libs\Ptc.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Ptc.EquationEditor">
+      <HintPath>..\Libs\Ptc.EquationEditor.dll</HintPath>
+    </Reference>
+    <Reference Include="Ptc.MathcadPrime.Automation">
+      <HintPath>..\Libs\Ptc.MathcadPrime.Automation.dll</HintPath>
+    </Reference>
+    <Reference Include="Ptc.Media3D">
+      <HintPath>..\Libs\Ptc.Media3D.dll</HintPath>
+    </Reference>
+    <Reference Include="Ptc.SpiritAutomation">
+      <HintPath>..\Libs\Ptc.SpiritAutomation.dll</HintPath>
+    </Reference>
+    <Reference Include="Ptc.TestFramework">
+      <HintPath>..\Libs\Ptc.TestFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+    <Reference Include="WindowsBase" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ShareCad.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="../packages/UnmanagedExports.1.2.7/tools/RGiesecke.DllExport.targets" Condition="Exists('../packages/UnmanagedExports.1.2.7/tools/RGiesecke.DllExport.targets')" />
+</Project>
