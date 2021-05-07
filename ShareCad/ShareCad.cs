@@ -152,22 +152,11 @@ namespace ShareCad
             }
         }
 
-        [HarmonyPatch]
-        class MathcadPrimePatches
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(SpiritMainWindow), "NewDocument", new Type[] { typeof(bool), typeof(DocumentReadonlyOptions), typeof(bool) })] // Fra MathcadPrime.exe
+        public static void Postfix_SpiritMainWindow(ref EngineeringDocument __result)
         {
-            IEnumerable<MethodBase> TargetMethods()
-            {
-                return (from type in AccessTools.GetTypesFromAssembly(Assembly.GetExecutingAssembly())
-                        where type.GetType() == typeof(SpiritMainWindow) 
-                        where type.GetMethod("NewDocument").ReturnType == typeof(EngineeringDocument)
-                        select type.GetMethod("NewDocument"))
-                        .Cast<MethodBase>();
-            }
-
-            static void Postfix(MethodBase __originalMethod, ref EngineeringDocument __result)
-            {
-                engineeringDocument = __result;
-            }
+            engineeringDocument = __result;
         }
 
         private static void EngineeringDocument_QueryCursor(object sender, System.Windows.Input.QueryCursorEventArgs e)
