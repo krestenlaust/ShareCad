@@ -3,6 +3,7 @@ using Microsoft.Win32.SafeHandles;
 using Ptc.Controls;
 using Ptc.Controls.Core;
 using Ptc.Wpf;
+using Spirit;
 using System;
 using System.IO;
 using System.Reflection;
@@ -149,21 +150,11 @@ namespace ShareCad
             }
         }
 
-        // Kommer nok til at hooke nogle andre funktioner, da det her er lidt dumt
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(EngineeringDocument), "OpenFileAndUpdateCWDState")]
-        public static void Prefix_EngineeringDocument(EngineeringDocument __instance, ref string fileName)
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(SpiritMainWindow), "NewDocument")] // Fra MathcadPrime.exe
+        public static void Postfix_SpiritMainWindow(ref EngineeringDocument __result)
         {
-            bool test = engineeringDocument == null;
-            //if (__instance != null)
-            //{
-                engineeringDocument = __instance;
-            //}
-
-            if (test)
-            {
-                //engineeringDocument.QueryCursor += EngineeringDocument_QueryCursor;
-            }
+            engineeringDocument = __result;
         }
 
         private static void EngineeringDocument_QueryCursor(object sender, System.Windows.Input.QueryCursorEventArgs e)

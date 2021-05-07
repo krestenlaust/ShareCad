@@ -45,6 +45,9 @@
     <Reference Include="0Harmony">
       <HintPath>..\Libs\0Harmony.dll</HintPath>
     </Reference>
+    <Reference Include="MathcadPrime">
+      <HintPath>..\Libs\MathcadPrime.exe</HintPath>
+    </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="Ptc.Calculation.Core">
