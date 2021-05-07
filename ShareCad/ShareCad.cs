@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using Microsoft.Win32.SafeHandles;
 using Ptc.Controls;
+using Ptc.Controls.Core;
 using Ptc.Wpf;
 using System;
 using System.IO;
@@ -122,6 +123,7 @@ namespace ShareCad
                 var harmony = new Harmony("ShareCad");
                 harmony.PatchAll(Assembly.GetExecutingAssembly());
                 WinConsole.Initialize();
+                /*
                 var messageBoxResult = MessageBox.Show("Host?", 
                     "ShareCad", 
                     MessageBoxButton.YesNoCancel,
@@ -142,37 +144,71 @@ namespace ShareCad
 
                     default:
                         break;
-                }
+                }*/
                 initialised = true;
             }
         }
 
         // Kommer nok til at hooke nogle andre funktioner, da det her er lidt dumt
-
         [HarmonyPrefix]
         [HarmonyPatch(typeof(EngineeringDocument), "OpenFileAndUpdateCWDState")]
         public static void Prefix_EngineeringDocument(EngineeringDocument __instance, ref string fileName)
         {
-            if (__instance != null)
-            {
+            bool test = engineeringDocument == null;
+            //if (__instance != null)
+            //{
                 engineeringDocument = __instance;
-            }
+            //}
 
-            Console.Beep();
+            if (test)
+            {
+                //engineeringDocument.QueryCursor += EngineeringDocument_QueryCursor;
+            }
         }
 
-        static bool test;
+        private static void EngineeringDocument_QueryCursor(object sender, System.Windows.Input.QueryCursorEventArgs e)
+        {
+            Console.WriteLine($"Cursor moved");
+        }
+
         [HarmonyPostfix]
         [HarmonyPatch(typeof(WpfUtils), "ExecuteOnLayoutUpdated")]
         public static void Postfix_WpfUtils(ref UIElement element, ref Action action)
         {
-            if (engineeringDocument != null)
+            if (engineeringDocument is null)
             {
-                if (!test)
-                {
-                    Console.WriteLine("test");
-                    test = true;
-                }
+                return;
+            }
+
+            FileLoadResult fileLoadResult = new FileLoadResult();
+
+            engineeringDocument.OpenPackage(ref fileLoadResult, @"C:\Users\kress\Documents\Debug.mcdx", false);
+
+            var worksheet = engineeringDocument.WorksheetData;
+            if (worksheet is null)
+            {
+                Console.WriteLine("Træls");
+                return;
+            }
+
+            var content = worksheet.WorksheetContent;
+            if (content is null)
+            {
+                Console.WriteLine("Træls2");
+                return;
+            }
+
+            if (content is null || content.SerializedRegions is null)
+            {
+                Console.WriteLine("Null?");
+                return;
+            }
+
+            Console.WriteLine(content.SerializedRegions.Count);
+
+            foreach (var item in content.SerializedRegions)
+            {
+                Console.WriteLine(item.RegionData.Item);
             }
         }
     }

@@ -53,8 +53,9 @@
     <Reference Include="Ptc.Calculation.Core.resources">
       <HintPath>..\Libs\Ptc.Calculation.Core.resources.dll</HintPath>
     </Reference>
-    <Reference Include="Ptc.Controls">
-      <HintPath>..\Libs\Ptc.Controls.dll</HintPath>
+    <Reference Include="Ptc.Controls, Version=1.0.6361.11811, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\Downloads\Ptc.Controls.dll</HintPath>
     </Reference>
     <Reference Include="Ptc.Controls.CollapsibleArea">
       <HintPath>..\Libs\Ptc.Controls.CollapsibleArea.dll</HintPath>
