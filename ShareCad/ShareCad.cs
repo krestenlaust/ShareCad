@@ -1,19 +1,14 @@
 ﻿using HarmonyLib;
+using Microsoft.Win32.SafeHandles;
 using Ptc.Controls;
-using Ptc.Controls.Core;
 using Ptc.Wpf;
-
 using System;
+using System.IO;
 using System.Reflection;
-using System.Windows;
-using System.Threading.Tasks;
+using System.Runtime.InteropServices;
 using System.Security;
 using System.Security.Permissions;
-using System.Threading;
-using System.Runtime.InteropServices;
-using System.IO;
-using Microsoft.Win32.SafeHandles;
-using Ptc.PersistentData;
+using System.Windows;
 
 [module: UnverifiableCode]
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
@@ -119,7 +114,6 @@ namespace ShareCad
     {
         bool initialised;
         static EngineeringDocument engineeringDocument;
-        static IWorksheetPersistentData testData;
 
         public void ShareCadInit()
         {
@@ -128,6 +122,21 @@ namespace ShareCad
                 var harmony = new Harmony("ShareCad");
                 harmony.PatchAll(Assembly.GetExecutingAssembly());
                 WinConsole.Initialize();
+                var messageBoxResult = MessageBox.Show("Host?", "ShareCad", MessageBoxButton.YesNoCancel,
+                    MessageBoxImage.Question, MessageBoxResult.Cancel, MessageBoxOptions.DefaultDesktopOnly);
+                switch (messageBoxResult)
+                {
+                    case MessageBoxResult.Yes:
+                        // stuff
+                        break;
+
+                    case MessageBoxResult.No:
+                        // stuff
+                        break;
+
+                    default:
+                        break;
+                }
                 initialised = true;
             }
         }
