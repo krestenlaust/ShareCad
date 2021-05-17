@@ -154,15 +154,17 @@ namespace ShareCad
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(SpiritMainWindow), "NewDocument", new Type[] { typeof(bool), typeof(DocumentReadonlyOptions), typeof(bool) })] // Fra MathcadPrime.exe
-        public static void Postfix_SpiritMainWindow(ref EngineeringDocument __result)
+        public static void Postfix_SpiritMainWindow(ref IEngineeringDocument __result)
         {
-            engineeringDocument = __result;
+            engineeringDocument = (EngineeringDocument)__result;
         }
 
         private static void EngineeringDocument_QueryCursor(object sender, System.Windows.Input.QueryCursorEventArgs e)
         {
             Console.WriteLine($"Cursor moved");
         }
+
+        static bool subscribed = false;
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(WpfUtils), "ExecuteOnLayoutUpdated")]
@@ -173,10 +175,17 @@ namespace ShareCad
                 return;
             }
 
-            FileLoadResult fileLoadResult = new FileLoadResult();
+            if (!subscribed)
+            {
+                engineeringDocument.Worksheet.PropertyChanged += Worksheet_PropertyChanged;
+                subscribed = true;
+            }
 
-            engineeringDocument.OpenPackage(ref fileLoadResult, @"C:\Users\kress\Documents\Debug.mcdx", false);
+            //FileLoadResult fileLoadResult = new FileLoadResult();
 
+            //engineeringDocument.OpenPackage(ref fileLoadResult, @"C:\Users\kress\Documents\Debug.mcdx", false);
+
+            /*
             var worksheet = engineeringDocument.WorksheetData;
             if (worksheet is null)
             {
@@ -202,7 +211,12 @@ namespace ShareCad
             foreach (var item in content.SerializedRegions)
             {
                 Console.WriteLine(item.RegionData.Item);
-            }
+            }*/
+        }
+
+        private static void Worksheet_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            Console.WriteLine("Property changed, region count: " + engineeringDocument.RegionCount);
         }
     }
 }
