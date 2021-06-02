@@ -146,7 +146,6 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Networking.cs" />
     <Compile Include="ShareCad.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

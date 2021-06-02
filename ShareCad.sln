@@ -7,6 +7,15 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShareCad", "ShareCad\ShareC
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Patcher", "Patcher\Patcher.csproj", "{B65D920D-3E50-41B6-9811-3B5407A199A8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShareCad.Networking", "ShareCad.Networking\ShareCad.Networking.csproj", "{60072FEE-7D38-4312-9B31-A016610CF8DF}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{0759ACEC-849E-4898-BE04-8761C980AF82}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShareCad.Networking.Debugging", "ShareCad.Networking.Debugging\ShareCad.Networking.Debugging.csproj", "{DA1B7D16-5A2F-4228-BF14-B64A981C7A3E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +30,14 @@ Global
 		{B65D920D-3E50-41B6-9811-3B5407A199A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B65D920D-3E50-41B6-9811-3B5407A199A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B65D920D-3E50-41B6-9811-3B5407A199A8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{60072FEE-7D38-4312-9B31-A016610CF8DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{60072FEE-7D38-4312-9B31-A016610CF8DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{60072FEE-7D38-4312-9B31-A016610CF8DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{60072FEE-7D38-4312-9B31-A016610CF8DF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DA1B7D16-5A2F-4228-BF14-B64A981C7A3E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DA1B7D16-5A2F-4228-BF14-B64A981C7A3E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DA1B7D16-5A2F-4228-BF14-B64A981C7A3E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DA1B7D16-5A2F-4228-BF14-B64A981C7A3E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

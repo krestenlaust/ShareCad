@@ -2,6 +2,7 @@
 using Microsoft.Win32.SafeHandles;
 using Ptc.Controls;
 using Ptc.Controls.Core;
+using Ptc.Controls.Worksheet;
 using Ptc.Wpf;
 using Spirit;
 using System;
@@ -216,7 +217,30 @@ namespace ShareCad
 
         private static void Worksheet_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            Console.WriteLine("Property changed, region count: " + engineeringDocument.RegionCount);
+
+            if (e.PropertyName == "CurrentElement")
+            {
+                Console.WriteLine("Property changed: " + e.PropertyName);
+                Console.WriteLine(sender);
+
+                WorksheetControl control = (WorksheetControl)sender;
+
+                if (control.GetWorksheetData() is null)
+                {
+                    return;
+                }
+
+                
+                var regions = control.GetWorksheetData().WorksheetContent.RegionsToSerialize;
+
+                foreach (var item in regions)
+                {
+                    Console.WriteLine(item.Value);
+                }
+
+                //Console.WriteLine(control.GetWorksheetData().WorksheetContent.RegionsToSerialize?.Count + " + " + control.GetWorksheetData().WorksheetContent.SerializedRegions?.Count);
+            }
+            //Console.WriteLine("Property changed, region count: " + engineeringDocument.RegionCount);
         }
     }
 }
