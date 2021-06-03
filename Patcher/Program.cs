@@ -22,8 +22,9 @@ namespace Patcher
             MethodDefinition method = type.Methods.Single(m => m.Name == "PrimeStartup");
 
             var processor = method.Body.GetILProcessor();
-            var inst1 = processor.Create(OpCodes.Call, AccessTools.TypeByName("Directory").GetMethod(""));
-            processor.Append(inst1);
+            // lavet til kommentarer af Kresten. (ellers vil den ik køre)
+            //var inst1 = processor.Create(OpCodes.Call, AccessTools.TypeByName("Directory").GetMethod(""));
+            //processor.Append(inst1);
         }
     }
 }

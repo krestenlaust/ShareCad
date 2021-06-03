@@ -4,6 +4,7 @@ using Ptc.Controls;
 using Ptc.Controls.Core;
 using Ptc.Controls.Worksheet;
 using Ptc.Wpf;
+using Ptc.PersistentData;
 using Spirit;
 using System;
 using System.Collections.Generic;
@@ -14,6 +15,7 @@ using System.Runtime.InteropServices;
 using System.Security;
 using System.Security.Permissions;
 using System.Windows;
+using System.Xml.Serialization;
 
 [module: UnverifiableCode]
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
@@ -225,13 +227,17 @@ namespace ShareCad
 
                 WorksheetControl control = (WorksheetControl)sender;
 
-                if (control.GetWorksheetData() is null)
+                XmlSerializer xmller = new XmlSerializer(typeof(WorksheetControl));
+                xmller.Serialize(Console.Out, control);
+
+                IWorksheetPersistentData worksheetData = control.GetWorksheetData();
+
+                if (worksheetData is null)
                 {
                     return;
                 }
 
-                
-                var regions = control.GetWorksheetData().WorksheetContent.RegionsToSerialize;
+                var regions = worksheetData.WorksheetContent.RegionsToSerialize;
 
                 foreach (var item in regions)
                 {
