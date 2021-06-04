@@ -227,10 +227,18 @@ namespace ShareCad
 
                 WorksheetControl control = (WorksheetControl)sender;
 
-                XmlSerializer xmller = new XmlSerializer(typeof(WorksheetControl));
-                xmller.Serialize(Console.Out, control);
-
                 IWorksheetPersistentData worksheetData = control.GetWorksheetData();
+
+
+                var serializableThing = worksheetData.WorksheetContent;
+
+                if (serializableThing is EquationControl equation)
+                {
+                    
+                }
+
+                byte[] serialized = AnySerializer.Serializer.Serialize((serializableThing.RegionsToSerialize.Keys.First() as EquationControl).Content);
+
 
                 if (worksheetData is null)
                 {
