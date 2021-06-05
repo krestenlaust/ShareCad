@@ -219,26 +219,23 @@ namespace ShareCad
 
         private static void Worksheet_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
+            Console.WriteLine($"=== Property changed: {e.PropertyName}, object type: {sender.GetType()} ===");
 
             if (e.PropertyName == "CurrentElement")
             {
-                Console.WriteLine("Property changed: " + e.PropertyName);
-                Console.WriteLine(sender);
-
                 WorksheetControl control = (WorksheetControl)sender;
 
-                IWorksheetPersistentData worksheetData = control.GetWorksheetData();
-
-
-                var serializableThing = worksheetData.WorksheetContent;
-
-                if (serializableThing is EquationControl equation)
+                Console.WriteLine(" - Active section items:");
+                foreach (var item in control.ActiveSectionItems)
                 {
-                    
+                    Console.WriteLine(item);
                 }
 
-                byte[] serialized = AnySerializer.Serializer.Serialize((serializableThing.RegionsToSerialize.Keys.First() as EquationControl).Content);
+                Console.WriteLine();
 
+
+                /* // ingen grund til at kigge på de her ting mere, siden man kan se dem under control.
+                IWorksheetPersistentData worksheetData = control.GetWorksheetData();
 
                 if (worksheetData is null)
                 {
@@ -249,12 +246,9 @@ namespace ShareCad
 
                 foreach (var item in regions)
                 {
-                    Console.WriteLine(item.Value);
-                }
-
-                //Console.WriteLine(control.GetWorksheetData().WorksheetContent.RegionsToSerialize?.Count + " + " + control.GetWorksheetData().WorksheetContent.SerializedRegions?.Count);
+                    Console.WriteLine(item.Key.GetType() + ":" + item.Value);
+                }*/
             }
-            //Console.WriteLine("Property changed, region count: " + engineeringDocument.RegionCount);
         }
     }
 }

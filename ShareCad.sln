@@ -14,7 +14,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShareCad.Networking.Debugging", "ShareCad.Networking.Debugging\ShareCad.Networking.Debugging.csproj", "{DA1B7D16-5A2F-4228-BF14-B64A981C7A3E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShareCad.Models", "ShareCad.Models\ShareCad.Models.csproj", "{50C78D08-4BA2-413D-B64B-88D8C23D5122}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,12 +41,12 @@ Global
 		{60072FEE-7D38-4312-9B31-A016610CF8DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{60072FEE-7D38-4312-9B31-A016610CF8DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{60072FEE-7D38-4312-9B31-A016610CF8DF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{DA1B7D16-5A2F-4228-BF14-B64A981C7A3E}.Debug Mathcad|Any CPU.ActiveCfg = Debug|Any CPU
-		{DA1B7D16-5A2F-4228-BF14-B64A981C7A3E}.Debug Mathcad|Any CPU.Build.0 = Debug|Any CPU
-		{DA1B7D16-5A2F-4228-BF14-B64A981C7A3E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DA1B7D16-5A2F-4228-BF14-B64A981C7A3E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DA1B7D16-5A2F-4228-BF14-B64A981C7A3E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DA1B7D16-5A2F-4228-BF14-B64A981C7A3E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{50C78D08-4BA2-413D-B64B-88D8C23D5122}.Debug Mathcad|Any CPU.ActiveCfg = Debug|Any CPU
+		{50C78D08-4BA2-413D-B64B-88D8C23D5122}.Debug Mathcad|Any CPU.Build.0 = Debug|Any CPU
+		{50C78D08-4BA2-413D-B64B-88D8C23D5122}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{50C78D08-4BA2-413D-B64B-88D8C23D5122}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{50C78D08-4BA2-413D-B64B-88D8C23D5122}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{50C78D08-4BA2-413D-B64B-88D8C23D5122}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
