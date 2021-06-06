@@ -219,35 +219,69 @@ namespace ShareCad
 
         private static void Worksheet_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            Console.WriteLine($"=== Property changed: {e.PropertyName}, object type: {sender.GetType()} ===");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine($"=== {DateTime.Now:HH:mm:ss} - PropertyChange invoked - {e.PropertyName} ===");
+            Console.ForegroundColor = ConsoleColor.Gray;
 
-            if (e.PropertyName == "CurrentElement")
+            WorksheetControl control = (WorksheetControl)sender;
+
+            Console.WriteLine($" - ActiveItem: {control.ActiveItem}, {control.ActiveDescendant}, {control.CurrentElement}");
+            // for at finde ud af hvad der gør dem unik så man kan sende et ID med over nettet.
+            Console.WriteLine($" - Name: {control.Name} Id: {control.PersistId} Uid: {control.Uid}");
+
+            // Liste over aktive elementer.
+            Console.WriteLine(" - Active section items:");
+            foreach (var item in control.ActiveSectionItems)
             {
-                WorksheetControl control = (WorksheetControl)sender;
+                Console.WriteLine(item);
+            }
 
-                Console.WriteLine(" - Active section items:");
-                foreach (var item in control.ActiveSectionItems)
-                {
-                    Console.WriteLine(item);
-                }
+            Console.WriteLine();
 
-                Console.WriteLine();
+            switch (e.PropertyName)
+            {
+                case "SelectedDescendants":
+                    // finder det første element lavet, eller null.
+                    var firstElement = control.ActiveSectionItems.FirstOrDefault();
 
+                    // aktivér debug test scenarie hvis der laves en formel som det første element.
+                    if (firstElement is EquationControl eqControl)
+                    {
+                        // Prøv at oprette et tekst element, (der bliver ikke gjort mere ved det lige nu).
+                        Ptc.Controls.Text.TextRegion textRegion = new Ptc.Controls.Text.TextRegion()
+                        {
+                            Text = "INJECTED!",
+                        };
 
-                /* // ingen grund til at kigge på de her ting mere, siden man kan se dem under control.
-                IWorksheetPersistentData worksheetData = control.GetWorksheetData();
+                        // Indsæt tekst element.
+                        // ???
 
-                if (worksheetData is null)
-                {
-                    return;
-                }
+                        // Profit! (andre test ting)
 
-                var regions = worksheetData.WorksheetContent.RegionsToSerialize;
+                        // flyt det første element til koordinatet (0, 5)
+                        control.MoveItemGridLocation(firstElement, new Point(0, 5));
 
-                foreach (var item in regions)
-                {
-                    Console.WriteLine(item.Key.GetType() + ":" + item.Value);
-                }*/
+                        Console.WriteLine("Moved control to 0, 5");
+                    }
+                    break;
+                case "CurrentElement":
+                    /* // ingen grund til at kigge på de her ting mere, siden man kan se dem under control.
+                    IWorksheetPersistentData worksheetData = control.GetWorksheetData();
+
+                    if (worksheetData is null)
+                    {
+                        return;
+                    }
+
+                    var regions = worksheetData.WorksheetContent.RegionsToSerialize;
+
+                    foreach (var item in regions)
+                    {
+                        Console.WriteLine(item.Key.GetType() + ":" + item.Value);
+                    }*/
+                    break;
+                default:
+                    break;
             }
         }
     }
