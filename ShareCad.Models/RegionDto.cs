@@ -20,6 +20,7 @@ namespace ShareCad.Models
 {
     public class RegionDto
     {
+        public string ID { get; set; }
         public POINT GridPosition { get; set; }
     }
 }

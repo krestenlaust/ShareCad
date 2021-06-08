@@ -61,5 +61,11 @@
     <Compile Include="TextRegionDto.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ShareCad\ShareCad.csproj">
+      <Project>{88b9903c-f071-4e64-9e4b-88d763dfe636}</Project>
+      <Name>ShareCad</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

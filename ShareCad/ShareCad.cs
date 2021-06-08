@@ -17,6 +17,8 @@ using System.Security.Permissions;
 using System.Windows;
 using System.Xml.Serialization;
 using Ptc.Controls.Whiteboard;
+using System.Windows.Input;
+using Ptc.FunctionalitiesLimitation;
 
 [module: UnverifiableCode]
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
@@ -185,6 +187,7 @@ namespace ShareCad
                 subscribed = true;
             }
 
+            #region unused
             //FileLoadResult fileLoadResult = new FileLoadResult();
 
             //engineeringDocument.OpenPackage(ref fileLoadResult, @"C:\Users\kress\Documents\Debug.mcdx", false);
@@ -216,10 +219,22 @@ namespace ShareCad
             {
                 Console.WriteLine(item.RegionData.Item);
             }*/
+            #endregion
         }
+
+        private static bool registeredKeys;
 
         private static void Worksheet_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
+            // register key inputs.
+            if (!registeredKeys)
+            {
+                CommandManager.RegisterClassInputBinding(
+                    typeof(WorksheetControl), 
+                    new InputBinding(new InputBindingFunctionalityCommandWrapper(WorksheetCommands.ToggleShowGrid), Gestures.CtrlUp));
+                registeredKeys = true;
+            }
+
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine($"=== {DateTime.Now:HH:mm:ss} - PropertyChange invoked - {e.PropertyName} ===");
             Console.ForegroundColor = ConsoleColor.Gray;
@@ -227,7 +242,7 @@ namespace ShareCad
             WorksheetControl control = (WorksheetControl)sender;
             var worksheetData = control.GetWorksheetData();
 
-            var viewModel = control.DataContext as IWorksheetViewModel;
+            var viewModel = control.GetViewModel();
 
             Console.WriteLine($" - ActiveItem: {control.ActiveItem}, {control.ActiveDescendant}, {control.CurrentElement}");
             // for at finde ud af hvad der gør dem unik så man kan sende et ID med over nettet.
@@ -235,9 +250,9 @@ namespace ShareCad
 
             // Liste over aktive elementer.
             Console.WriteLine(" - Active section items:");
-            foreach (var item in control.ActiveSectionItems)
+            foreach (var item in viewModel.ActiveSection.WhiteboardItems)
             {
-                Console.WriteLine(item);
+                Console.WriteLine($"{item}");
             }
 
             Console.WriteLine();
@@ -266,16 +281,13 @@ namespace ShareCad
 
                         // Indsæt tekst element.
                         // ???
-                        viewModel.AddItemAtLocation(textRegion, new Point(5, 5));
+                        viewModel.AddItemAtLocation(textRegion, viewModel.GridLocationToWorksheetLocation(new Point(5, 5)));
                         //var worksheetData = control.GetWorksheetData();
                         if (worksheetData is null)
                         {
                             break;
                         }
-
-                        var regions = worksheetData.WorksheetContent.RegionsToSerialize;
-                        regions.Add(textRegion, new Point(10, 10));
-
+                        
                         // Profit! (andre test ting)
 
                     }
