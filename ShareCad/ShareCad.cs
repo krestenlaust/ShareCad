@@ -290,6 +290,8 @@ namespace ShareCad
                             Text = "INJECTED!",
                         };
 
+                        realText.Text = "PROJECT OVERRIDE";
+
                         //var res = AnyDiff.AnyDiff.Diff(realText, textRegion);
 
                         // Indsæt tekst element.
