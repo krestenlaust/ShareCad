@@ -280,7 +280,10 @@ namespace ShareCad
                     if (firstElement is Ptc.Controls.Text.TextRegion realText)
                     {
                         // flyt det første element til koordinatet (0, 5)
-                        control.MoveItemGridLocation(firstElement, new Point(0, 5));
+                        //control.MoveItemGridLocation(firstElement, new Point(0, 2));
+
+                        // 👑〖⚡ᖘ๖ۣۜℜΘ𝕵ECT ΘVERRIDE⚡〗👑
+                        realText.Text = "👑〖⚡ᖘ๖ۣۜℜΘ𝕵ECT ΘVERRIDE⚡〗👑";
 
                         Console.WriteLine("Moved control to 0, 5");
 
@@ -290,13 +293,11 @@ namespace ShareCad
                             Text = "INJECTED!",
                         };
 
-                        realText.Text = "PROJECT OVERRIDE";
-
                         //var res = AnyDiff.AnyDiff.Diff(realText, textRegion);
 
                         // Indsæt tekst element.
                         // ???
-                        viewModel.AddItemAtLocation(textRegion, viewModel.GridLocationToWorksheetLocation(new Point(5, 5)));
+                        viewModel.AddItemAtLocation(textRegion, viewModel.GridLocationToWorksheetLocation(new Point(5, 7)));
                         //var worksheetData = control.GetWorksheetData();
                         if (worksheetData is null)
                         {
