@@ -7,15 +7,11 @@ using Ptc.Wpf;
 using Ptc.PersistentData;
 using Spirit;
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Security;
 using System.Security.Permissions;
 using System.Windows;
-using System.Xml.Serialization;
 using Ptc.Controls.Whiteboard;
 using System.Windows.Input;
 using Ptc.FunctionalitiesLimitation;
@@ -23,150 +19,58 @@ using Networking;
 
 [module: UnverifiableCode]
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
-
 namespace ShareCad
 {
-    static class WinConsole
+    internal static class ModuleInitializer
     {
-        static public void Initialize(bool alwaysCreateNewConsole = true)
+        internal static void Run()
         {
-            bool consoleAttached = true;
-            if (alwaysCreateNewConsole
-                || (AttachConsole(ATTACH_PARRENT) == 0
-                && Marshal.GetLastWin32Error() != ERROR_ACCESS_DENIED))
-            {
-                consoleAttached = AllocConsole() != 0;
-            }
+            Console.WriteLine("LOADED!");
 
-            if (consoleAttached)
+            var harmony = new Harmony("ShareCad");
+            harmony.PatchAll(Assembly.GetExecutingAssembly());
+            //WinConsole.Initialize();
+            
+            /*
+            var messageBoxResult = MessageBox.Show("Host?", 
+                "ShareCad", 
+                MessageBoxButton.YesNoCancel,
+                MessageBoxImage.Question, 
+                MessageBoxResult.Cancel, 
+                MessageBoxOptions.DefaultDesktopOnly
+                );
+
+            switch (messageBoxResult)
             {
-                InitializeOutStream();
-                InitializeInStream();
-            }
+                case MessageBoxResult.Yes:
+                    // stuff
+                    break;
+
+                case MessageBoxResult.No:
+                    // stuff
+                    break;
+
+                default:
+                    break;
+            }*/
         }
-
-        private static void InitializeOutStream()
-        {
-            var fs = CreateFileStream("CONOUT$", GENERIC_WRITE, FILE_SHARE_WRITE, FileAccess.Write);
-            if (fs != null)
-            {
-                var writer = new StreamWriter(fs) { AutoFlush = true };
-                Console.SetOut(writer);
-                Console.SetError(writer);
-            }
-        }
-
-        private static void InitializeInStream()
-        {
-            var fs = CreateFileStream("CONIN$", GENERIC_READ, FILE_SHARE_READ, FileAccess.Read);
-            if (fs != null)
-            {
-                Console.SetIn(new StreamReader(fs));
-            }
-        }
-
-        private static FileStream CreateFileStream(string name, uint win32DesiredAccess, uint win32ShareMode,
-                                FileAccess dotNetFileAccess)
-        {
-            var file = new SafeFileHandle(CreateFileW(name, win32DesiredAccess, win32ShareMode, IntPtr.Zero, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, IntPtr.Zero), true);
-            if (!file.IsInvalid)
-            {
-                var fs = new FileStream(file, dotNetFileAccess);
-                return fs;
-            }
-            return null;
-        }
-
-        #region Win API Functions and Constants
-        [DllImport("kernel32.dll",
-            EntryPoint = "AllocConsole",
-            SetLastError = true,
-            CharSet = CharSet.Auto,
-            CallingConvention = CallingConvention.StdCall)]
-        private static extern int AllocConsole();
-
-        [DllImport("kernel32.dll",
-            EntryPoint = "AttachConsole",
-            SetLastError = true,
-            CharSet = CharSet.Auto,
-            CallingConvention = CallingConvention.StdCall)]
-        private static extern UInt32 AttachConsole(UInt32 dwProcessId);
-
-        [DllImport("kernel32.dll",
-            EntryPoint = "CreateFileW",
-            SetLastError = true,
-            CharSet = CharSet.Auto,
-            CallingConvention = CallingConvention.StdCall)]
-        private static extern IntPtr CreateFileW(
-              string lpFileName,
-              UInt32 dwDesiredAccess,
-              UInt32 dwShareMode,
-              IntPtr lpSecurityAttributes,
-              UInt32 dwCreationDisposition,
-              UInt32 dwFlagsAndAttributes,
-              IntPtr hTemplateFile
-            );
-
-        private const UInt32 GENERIC_WRITE = 0x40000000;
-        private const UInt32 GENERIC_READ = 0x80000000;
-        private const UInt32 FILE_SHARE_READ = 0x00000001;
-        private const UInt32 FILE_SHARE_WRITE = 0x00000002;
-        private const UInt32 OPEN_EXISTING = 0x00000003;
-        private const UInt32 FILE_ATTRIBUTE_NORMAL = 0x80;
-        private const UInt32 ERROR_ACCESS_DENIED = 5;
-
-        private const UInt32 ATTACH_PARRENT = 0xFFFFFFFF;
-
-        #endregion
     }
 
     [HarmonyPatch]
     public class ShareCad
     {
-        bool initialised;
         static EngineeringDocument engineeringDocument;
 
-        public void ShareCadInit()
-        {
-            if (!initialised)
-            {
-                var harmony = new Harmony("ShareCad");
-                harmony.PatchAll(Assembly.GetExecutingAssembly());
-                WinConsole.Initialize();
-                /*
-                var messageBoxResult = MessageBox.Show("Host?", 
-                    "ShareCad", 
-                    MessageBoxButton.YesNoCancel,
-                    MessageBoxImage.Question, 
-                    MessageBoxResult.Cancel, 
-                    MessageBoxOptions.DefaultDesktopOnly
-                    );
-
-                switch (messageBoxResult)
-                {
-                    case MessageBoxResult.Yes:
-                        // stuff
-                        break;
-
-                    case MessageBoxResult.No:
-                        // stuff
-                        break;
-
-                    default:
-                        break;
-                }*/
-                initialised = true;
-            }
-        }
-
+        // Fra MathcadPrime.exe
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(SpiritMainWindow), "NewDocument", new Type[] { typeof(bool), typeof(DocumentReadonlyOptions), typeof(bool) })] // Fra MathcadPrime.exe
+        [HarmonyPatch(typeof(SpiritMainWindow), "NewDocument", new Type[] { typeof(bool), typeof(DocumentReadonlyOptions), typeof(bool) })]
         public static void Postfix_SpiritMainWindow(ref IEngineeringDocument __result)
         {
-            engineeringDocument = (EngineeringDocument)__result;
+            engineeringDocument = __result as EngineeringDocument;
+            Console.WriteLine("Result: " + engineeringDocument);
         }
 
-        private static void EngineeringDocument_QueryCursor(object sender, System.Windows.Input.QueryCursorEventArgs e)
+        private static void EngineeringDocument_QueryCursor(object sender, QueryCursorEventArgs e)
         {
             Console.WriteLine($"Cursor moved");
         }
@@ -259,7 +163,7 @@ namespace ShareCad
 
             //Console.WriteLine($" - ActiveItem: {control.ActiveItem}, {control.ActiveDescendant}, {control.CurrentElement}");
             // for at finde ud af hvad der gør dem unik så man kan sende et ID med over nettet.
-            Console.WriteLine($" - Id: {control.PersistId}");
+            Console.WriteLine($"ID: {control.PersistId}");
 
             // Liste over aktive elementer.
             Console.WriteLine(" - Active section items:");
