@@ -34,8 +34,14 @@
     <Reference Include="Ptc.Controls">
       <HintPath>..\..\..\..\..\..\Program Files\PTC\Mathcad Prime 4.0\Ptc.Controls.dll</HintPath>
     </Reference>
+    <Reference Include="Ptc.Controls.Core">
+      <HintPath>..\..\..\..\..\..\Program Files\PTC\Mathcad Prime 4.0\Ptc.Controls.Core.dll</HintPath>
+    </Reference>
     <Reference Include="Ptc.Controls.Text">
       <HintPath>..\..\..\..\..\..\Program Files\PTC\Mathcad Prime 4.0\Ptc.Controls.Text.dll</HintPath>
+    </Reference>
+    <Reference Include="Ptc.Controls.Worksheet">
+      <HintPath>..\..\..\..\..\..\Program Files\PTC\Mathcad Prime 4.0\Ptc.Controls.Worksheet.dll</HintPath>
     </Reference>
     <Reference Include="Ptc.Core">
       <HintPath>..\..\..\..\..\..\Program Files\PTC\Mathcad Prime 4.0\Ptc.Core.dll</HintPath>

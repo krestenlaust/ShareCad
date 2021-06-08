@@ -16,6 +16,7 @@ using System.Security;
 using System.Security.Permissions;
 using System.Windows;
 using System.Xml.Serialization;
+using Ptc.Controls.Whiteboard;
 
 [module: UnverifiableCode]
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
@@ -224,6 +225,9 @@ namespace ShareCad
             Console.ForegroundColor = ConsoleColor.Gray;
 
             WorksheetControl control = (WorksheetControl)sender;
+            var worksheetData = control.GetWorksheetData();
+
+            var viewModel = control.DataContext as IWorksheetViewModel;
 
             Console.WriteLine($" - ActiveItem: {control.ActiveItem}, {control.ActiveDescendant}, {control.CurrentElement}");
             // for at finde ud af hvad der gør dem unik så man kan sende et ID med over nettet.
@@ -244,24 +248,36 @@ namespace ShareCad
                     // finder det første element lavet, eller null.
                     var firstElement = control.ActiveSectionItems.FirstOrDefault();
 
-                    // aktivér debug test scenarie hvis der laves en formel som det første element.
-                    if (firstElement is EquationControl eqControl)
+                    // aktivér debug test scenarie hvis der laves en tekstboks som det første element.
+                    if (firstElement is Ptc.Controls.Text.TextRegion realText)
                     {
+                        // flyt det første element til koordinatet (0, 5)
+                        control.MoveItemGridLocation(firstElement, new Point(0, 5));
+
+                        Console.WriteLine("Moved control to 0, 5");
+
                         // Prøv at oprette et tekst element, (der bliver ikke gjort mere ved det lige nu).
                         Ptc.Controls.Text.TextRegion textRegion = new Ptc.Controls.Text.TextRegion()
                         {
                             Text = "INJECTED!",
                         };
 
+                        //var res = AnyDiff.AnyDiff.Diff(realText, textRegion);
+
                         // Indsæt tekst element.
                         // ???
+                        viewModel.AddItemAtLocation(textRegion, new Point(5, 5));
+                        //var worksheetData = control.GetWorksheetData();
+                        if (worksheetData is null)
+                        {
+                            break;
+                        }
+
+                        var regions = worksheetData.WorksheetContent.RegionsToSerialize;
+                        regions.Add(textRegion, new Point(10, 10));
 
                         // Profit! (andre test ting)
 
-                        // flyt det første element til koordinatet (0, 5)
-                        control.MoveItemGridLocation(firstElement, new Point(0, 5));
-
-                        Console.WriteLine("Moved control to 0, 5");
                     }
                     break;
                 case "CurrentElement":
@@ -270,7 +286,7 @@ namespace ShareCad
 
                     if (worksheetData is null)
                     {
-                        return;
+                        break;
                     }
 
                     var regions = worksheetData.WorksheetContent.RegionsToSerialize;
@@ -279,6 +295,9 @@ namespace ShareCad
                     {
                         Console.WriteLine(item.Key.GetType() + ":" + item.Value);
                     }*/
+                    break;
+                case "WorksheetPageLayoutMode":
+                    // changed from draft to page
                     break;
                 default:
                     break;
