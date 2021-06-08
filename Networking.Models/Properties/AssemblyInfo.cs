@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("ShareCad.Models")]
+[assembly: AssemblyTitle("Networking.Models")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("ShareCad.Models")]
+[assembly: AssemblyProduct("Networking.Models")]
 [assembly: AssemblyCopyright("Copyright ©  2021")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("50c78d08-4ba2-413d-b64b-88d8c23d5122")]
+[assembly: Guid("9c5b523f-b0ca-443c-a766-952056427688")]
 
 // Version information for an assembly consists of the following four values:
 //

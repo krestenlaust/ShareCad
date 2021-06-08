@@ -169,6 +169,16 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Networking.Models\Networking.Models.csproj">
+      <Project>{9c5b523f-b0ca-443c-a766-952056427688}</Project>
+      <Name>Networking.Models</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ShareCad.Networking\Networking.csproj">
+      <Project>{60072fee-7d38-4312-9b31-a016610cf8df}</Project>
+      <Name>Networking</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="../packages/UnmanagedExports.1.2.7/tools/RGiesecke.DllExport.targets" Condition="Exists('../packages/UnmanagedExports.1.2.7/tools/RGiesecke.DllExport.targets')" />
   <PropertyGroup>

@@ -4,14 +4,15 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{50C78D08-4BA2-413D-B64B-88D8C23D5122}</ProjectGuid>
+    <ProjectGuid>{60072FEE-7D38-4312-9B31-A016610CF8DF}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ShareCad.Models</RootNamespace>
-    <AssemblyName>ShareCad.Models</AssemblyName>
+    <RootNamespace>ShareCad.Networking</RootNamespace>
+    <AssemblyName>ShareCad.Networking</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -30,22 +31,16 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug Mathcad|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Debug Mathcad\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Ptc.Controls">
-      <HintPath>..\..\..\..\..\..\Program Files\PTC\Mathcad Prime 4.0\Ptc.Controls.dll</HintPath>
-    </Reference>
-    <Reference Include="Ptc.Controls.Core">
-      <HintPath>..\..\..\..\..\..\Program Files\PTC\Mathcad Prime 4.0\Ptc.Controls.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="Ptc.Controls.Text">
-      <HintPath>..\..\..\..\..\..\Program Files\PTC\Mathcad Prime 4.0\Ptc.Controls.Text.dll</HintPath>
-    </Reference>
-    <Reference Include="Ptc.Controls.Worksheet">
-      <HintPath>..\..\..\..\..\..\Program Files\PTC\Mathcad Prime 4.0\Ptc.Controls.Worksheet.dll</HintPath>
-    </Reference>
-    <Reference Include="Ptc.Core">
-      <HintPath>..\..\..\..\..\..\Program Files\PTC\Mathcad Prime 4.0\Ptc.Core.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Windows" />
@@ -55,16 +50,22 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
+    <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="RegionDto.cs" />
-    <Compile Include="TextRegionDto.cs" />
+    <Compile Include="Networking.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ShareCad\ShareCad.csproj">
-      <Project>{88b9903c-f071-4e64-9e4b-88d763dfe636}</Project>
-      <Name>ShareCad</Name>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Analyzer Include="..\packages\StyleCop.Analyzers.Unstable.1.2.0.333\analyzers\dotnet\cs\StyleCop.Analyzers.CodeFixes.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Networking.Models\Networking.Models.csproj">
+      <Project>{9C5B523F-B0CA-443C-A766-952056427688}</Project>
+      <Name>Networking.Models</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

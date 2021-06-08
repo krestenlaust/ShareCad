@@ -7,14 +7,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShareCad", "ShareCad\ShareC
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Patcher", "Patcher\Patcher.csproj", "{B65D920D-3E50-41B6-9811-3B5407A199A8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShareCad.Networking", "ShareCad.Networking\ShareCad.Networking.csproj", "{60072FEE-7D38-4312-9B31-A016610CF8DF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Networking", "ShareCad.Networking\Networking.csproj", "{60072FEE-7D38-4312-9B31-A016610CF8DF}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{0759ACEC-849E-4898-BE04-8761C980AF82}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShareCad.Models", "ShareCad.Models\ShareCad.Models.csproj", "{50C78D08-4BA2-413D-B64B-88D8C23D5122}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Networking.Models", "Networking.Models\Networking.Models.csproj", "{9C5B523F-B0CA-443C-A766-952056427688}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,12 +41,12 @@ Global
 		{60072FEE-7D38-4312-9B31-A016610CF8DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{60072FEE-7D38-4312-9B31-A016610CF8DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{60072FEE-7D38-4312-9B31-A016610CF8DF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{50C78D08-4BA2-413D-B64B-88D8C23D5122}.Debug Mathcad|Any CPU.ActiveCfg = Debug|Any CPU
-		{50C78D08-4BA2-413D-B64B-88D8C23D5122}.Debug Mathcad|Any CPU.Build.0 = Debug|Any CPU
-		{50C78D08-4BA2-413D-B64B-88D8C23D5122}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{50C78D08-4BA2-413D-B64B-88D8C23D5122}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{50C78D08-4BA2-413D-B64B-88D8C23D5122}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{50C78D08-4BA2-413D-B64B-88D8C23D5122}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9C5B523F-B0CA-443C-A766-952056427688}.Debug Mathcad|Any CPU.ActiveCfg = Debug|Any CPU
+		{9C5B523F-B0CA-443C-A766-952056427688}.Debug Mathcad|Any CPU.Build.0 = Debug|Any CPU
+		{9C5B523F-B0CA-443C-A766-952056427688}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9C5B523F-B0CA-443C-A766-952056427688}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9C5B523F-B0CA-443C-A766-952056427688}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9C5B523F-B0CA-443C-A766-952056427688}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

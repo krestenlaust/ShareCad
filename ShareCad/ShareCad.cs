@@ -19,6 +19,7 @@ using System.Xml.Serialization;
 using Ptc.Controls.Whiteboard;
 using System.Windows.Input;
 using Ptc.FunctionalitiesLimitation;
+using Networking;
 
 [module: UnverifiableCode]
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
@@ -222,17 +223,29 @@ namespace ShareCad
             #endregion
         }
 
-        private static bool registeredKeys;
+        private static bool initialized;
 
         private static void Worksheet_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            // register key inputs.
-            if (!registeredKeys)
+            // register key inputs and other.
+            if (!initialized)
             {
+                initialized = true;
+
+                // debug other stuff.
+                Networking.Models.TextRegionDto dto = new Networking.Models.TextRegionDto()
+                {
+                    ID = "Kresten",
+                    GridPosition = new Point(5, 5),
+                    TextContent = "Kresten",
+                };
+                
+                Networking.Networking.SendObject(dto);
+
+                // register keys
                 CommandManager.RegisterClassInputBinding(
                     typeof(WorksheetControl), 
                     new InputBinding(new InputBindingFunctionalityCommandWrapper(WorksheetCommands.ToggleShowGrid), Gestures.CtrlUp));
-                registeredKeys = true;
             }
 
             Console.ForegroundColor = ConsoleColor.White;

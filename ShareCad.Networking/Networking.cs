@@ -7,8 +7,10 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using System.Windows;
+using Networking.Models;
 
-namespace ShareCad.Networking
+namespace Networking
 {
     public static class Networking
     {
@@ -25,11 +27,12 @@ namespace ShareCad.Networking
 
         public static void Debug() => Connect(IPAddress.Loopback);
 
-        public static void SendObject<T>(object emne)
+        public static void SendObject(RegionDto emne)
         {
-            XmlSerializer serializer = new XmlSerializer(typeof(T));
+            XmlSerializer serializer = new XmlSerializer(emne.GetType());
 
-            serializer.Serialize(tcpClient.GetStream(), emne);
+            Console.WriteLine("Sending object!");
+            serializer.Serialize(Console.Out, emne);
         }
 
         public static void BindListener()
