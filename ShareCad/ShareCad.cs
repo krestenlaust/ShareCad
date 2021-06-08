@@ -224,7 +224,7 @@ namespace ShareCad
         }
 
         private static bool initialized;
-
+        
         private static void Worksheet_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             // register key inputs and other.
@@ -257,15 +257,15 @@ namespace ShareCad
 
             var viewModel = control.GetViewModel();
 
-            Console.WriteLine($" - ActiveItem: {control.ActiveItem}, {control.ActiveDescendant}, {control.CurrentElement}");
+            //Console.WriteLine($" - ActiveItem: {control.ActiveItem}, {control.ActiveDescendant}, {control.CurrentElement}");
             // for at finde ud af hvad der gør dem unik så man kan sende et ID med over nettet.
-            Console.WriteLine($" - Name: {control.Name} Id: {control.PersistId} Uid: {control.Uid}");
+            Console.WriteLine($" - Id: {control.PersistId}");
 
             // Liste over aktive elementer.
             Console.WriteLine(" - Active section items:");
-            foreach (var item in viewModel.ActiveSection.WhiteboardItems)
+            foreach (var item in worksheetData.WorksheetContent.RegionsToSerialize)
             {
-                Console.WriteLine($"{item}");
+                Console.WriteLine($"{item.Key}");
             }
 
             Console.WriteLine();
