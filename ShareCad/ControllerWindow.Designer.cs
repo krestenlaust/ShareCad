@@ -35,6 +35,8 @@ namespace ShareCad
             this.radioButtonGuest = new System.Windows.Forms.RadioButton();
             this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
             this.buttonActivateNetworking = new System.Windows.Forms.Button();
+            this.buttonSyncPush = new System.Windows.Forms.Button();
+            this.buttonSyncPull = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.tableLayoutPanel1.SuspendLayout();
             this.tableLayoutPanel2.SuspendLayout();
@@ -101,6 +103,8 @@ namespace ShareCad
             this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
             this.tableLayoutPanel2.Controls.Add(this.groupBox1, 0, 0);
             this.tableLayoutPanel2.Controls.Add(this.buttonActivateNetworking, 0, 1);
+            this.tableLayoutPanel2.Controls.Add(this.buttonSyncPush, 1, 0);
+            this.tableLayoutPanel2.Controls.Add(this.buttonSyncPull, 1, 1);
             this.tableLayoutPanel2.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tableLayoutPanel2.Location = new System.Drawing.Point(0, 0);
             this.tableLayoutPanel2.Name = "tableLayoutPanel2";
@@ -120,6 +124,34 @@ namespace ShareCad
             this.buttonActivateNetworking.Text = "Aktivér deling";
             this.buttonActivateNetworking.UseVisualStyleBackColor = true;
             this.buttonActivateNetworking.Click += new System.EventHandler(this.buttonActivateNetworking_Click);
+            // 
+            // buttonSyncPush
+            // 
+            this.buttonSyncPush.BackgroundImage = global::ShareCad.Properties.Resources.upload_icon;
+            this.buttonSyncPush.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
+            this.buttonSyncPush.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.buttonSyncPush.Location = new System.Drawing.Point(403, 3);
+            this.buttonSyncPush.Name = "buttonSyncPush";
+            this.buttonSyncPush.Size = new System.Drawing.Size(394, 219);
+            this.buttonSyncPush.TabIndex = 3;
+            this.buttonSyncPush.Text = "Synkroniser ved at skubbe";
+            this.buttonSyncPush.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            this.buttonSyncPush.UseVisualStyleBackColor = true;
+            this.buttonSyncPush.Click += new System.EventHandler(this.buttonSyncPush_Click);
+            // 
+            // buttonSyncPull
+            // 
+            this.buttonSyncPull.BackgroundImage = global::ShareCad.Properties.Resources.download_icon;
+            this.buttonSyncPull.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
+            this.buttonSyncPull.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.buttonSyncPull.Location = new System.Drawing.Point(403, 228);
+            this.buttonSyncPull.Name = "buttonSyncPull";
+            this.buttonSyncPull.Size = new System.Drawing.Size(394, 219);
+            this.buttonSyncPull.TabIndex = 4;
+            this.buttonSyncPull.Text = "Synkroniser ved at hente";
+            this.buttonSyncPull.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            this.buttonSyncPull.UseVisualStyleBackColor = true;
+            this.buttonSyncPull.Click += new System.EventHandler(this.buttonSyncPull_Click);
             // 
             // ControllerWindow
             // 
@@ -146,5 +178,7 @@ namespace ShareCad
         private System.Windows.Forms.RadioButton radioButtonGuest;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel2;
         private System.Windows.Forms.Button buttonActivateNetworking;
+        private System.Windows.Forms.Button buttonSyncPush;
+        private System.Windows.Forms.Button buttonSyncPull;
     }
 }

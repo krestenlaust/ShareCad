@@ -25,7 +25,6 @@ using Ptc.Serialization;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
-using ShareCad.ControlWindow;
 
 [module: UnverifiableCode]
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
@@ -50,17 +49,79 @@ namespace ShareCad
             var harmony = new Harmony("ShareCad");
             harmony.PatchAll(Assembly.GetExecutingAssembly());
             WinConsole.Initialize();
-            var sharecadControl = new ControlSharecadForm();
+            var sharecadControl = new ControllerWindow();
             sharecadControl.OnActivateShareFunctionality += SharecadControl_OnActivateShareFunctionality;
-
+            sharecadControl.OnSyncPull += SharecadControl_OnSyncPull;
+            sharecadControl.OnSyncPush += SharecadControl_OnSyncPush;
+            sharecadControl.Show();
 
             Console.WriteLine("LOADED!");
             initializedModule = true;
         }
 
-        private void SharecadControl_OnActivateShareFunctionality(ControlSharecadForm.NetworkRole obj)
+        private void SharecadControl_OnSyncPush()
         {
-            MessageBox.Show(engineeringDocument.WorksheetData.ToString());
+            //WorksheetControl control = (WorksheetControl)((EngineeringDocument)sender).Content;
+            //var worksheetData = control.GetWorksheetData();
+
+            var worksheetData = engineeringDocument.Worksheet.GetWorksheetData();
+
+            if (worksheetData is null)
+            {
+                return;
+            }
+
+            using (Stream xmlStream = SerializeRegions(worksheetData.WorksheetContent))
+            {
+                Networking.Networking.TransmitStream(xmlStream);
+            }
+        }
+
+        private void SharecadControl_OnSyncPull()
+        {
+            //WorksheetControl control = (WorksheetControl)((EngineeringDocument)sender).Content;
+            //var worksheetData = control.GetWorksheetData();
+
+            var worksheetData = engineeringDocument.Worksheet.GetWorksheetData();
+
+            if (worksheetData is null)
+            {
+                Console.WriteLine("No progress :/");
+            }
+
+            if (Networking.Networking.ReceiveXml(out string readXml))
+            {
+                List<IRegionPersistentData> recievedControls = new List<IRegionPersistentData>();
+
+                //var viewModel = ((WorksheetControl)sender).GetViewModel();
+
+                recievedControls = DeserializeSection(readXml, worksheetData.WorksheetContent);
+
+                Console.WriteLine("Incoming data:");
+
+                foreach (var item in recievedControls)
+                {
+                    Console.WriteLine(item);
+                    worksheetData.WorksheetContent.SerializedRegions.Add(item);
+                }
+            }
+            else
+            {
+                Console.WriteLine("No incoming data.");
+            }
+        }
+
+        private void SharecadControl_OnActivateShareFunctionality(ControllerWindow.NetworkRole networkRole)
+        {
+            switch (networkRole)
+            {
+                case ControllerWindow.NetworkRole.Guest:
+                    Networking.Networking.Client.Connect(IPAddress.Loopback);
+                    break;
+                case ControllerWindow.NetworkRole.Host:
+                    Networking.Networking.Server.BindListener(IPAddress.Any);
+                    break;
+            }
         }
 
         // Fra MathcadPrime.exe
@@ -86,9 +147,9 @@ namespace ShareCad
             if (!subscribed)
             {
                 engineeringDocument.Worksheet.PropertyChanged += Worksheet_PropertyChanged;
-                engineeringDocument.MouseDoubleClick += EngineeringDocument_MouseDoubleClick;
-                engineeringDocument.ContextMenuOpening += EngineeringDocument_ContextMenuOpening;
-                engineeringDocument.ContextMenuClosing += EngineeringDocument_ContextMenuClosing;
+                //engineeringDocument.MouseDoubleClick += EngineeringDocument_MouseDoubleClick;
+                //engineeringDocument.ContextMenuOpening += EngineeringDocument_ContextMenuOpening;
+                //engineeringDocument.ContextMenuClosing += EngineeringDocument_ContextMenuClosing;
                 engineeringDocument.ManipulationCompleted += EngineeringDocument_ManipulationCompleted;
                 subscribed = true;
             }
@@ -111,55 +172,11 @@ namespace ShareCad
         private static void EngineeringDocument_ContextMenuOpening(object sender, System.Windows.Controls.ContextMenuEventArgs e)
         {
             Console.WriteLine("Context menu opening.");
-
-            WorksheetControl control = (WorksheetControl)((EngineeringDocument)sender).Content;
-            var worksheetData = control.GetWorksheetData();
-
-            if (Networking.Networking.ReceiveXml(out string readXml))
-            {
-                List<IRegionPersistentData> recievedControls = new List<IRegionPersistentData>();
-
-                //var viewModel = ((WorksheetControl)sender).GetViewModel();
-                /*
-                using (MemoryStream memoryStream = new MemoryStream())
-                {
-                    stream.CopyTo(memoryStream);
-
-                    recievedControls = DeserializeSection(memoryStream, worksheetData.WorksheetContent);
-                }*/
-
-                recievedControls = DeserializeSection(readXml, worksheetData.WorksheetContent);
-
-                Console.WriteLine("Incoming data:");
-
-                foreach (var item in recievedControls)
-                {
-                    Console.WriteLine(item);
-                    worksheetData.WorksheetContent.SerializedRegions.Add(item);
-                }
-            }
-            else
-            {
-                Console.WriteLine("No incoming data.");
-            }
         }
 
         private static void EngineeringDocument_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             Console.WriteLine("Double click!");
-
-            WorksheetControl control = (WorksheetControl)((EngineeringDocument)sender).Content;
-            var worksheetData = control.GetWorksheetData();
-
-            if (worksheetData is null)
-            {
-                return;
-            }
-
-            using (Stream xmlStream = SerializeRegions(worksheetData.WorksheetContent))
-            {
-                Networking.Networking.TransmitStream(xmlStream);
-            }
         }
 
         private static bool initializedTests;
@@ -205,67 +222,65 @@ namespace ShareCad
 
             //Console.WriteLine($" - ActiveItem: {control.ActiveItem}, {control.ActiveDescendant}, {control.CurrentElement}");
             // for at finde ud af hvad der gør dem unik så man kan sende et ID med over nettet.
-            Console.WriteLine($"ID: {control.PersistId}");
+            //Console.WriteLine($"ID: {control.PersistId}");
 
             // Liste over aktive elementer.
-            Console.WriteLine(" - Active section items:");
-            foreach (var item in worksheetData.WorksheetContent.RegionsToSerialize)
-            {
-                Console.WriteLine($"{item.Key}");
-            }
+            //Console.WriteLine(" - Active section items:");
+            //foreach (var item in worksheetData.WorksheetContent.RegionsToSerialize)
+            //{
+            //    Console.WriteLine($"{item.Key}");
+            //}
 
+            /*
             Console.WriteLine();
 
             switch (e.PropertyName)
             {
                 case "SelectedDescendants":
+                    #region Testing
                     // finder det første element lavet, eller null.
-                    var firstElement = control.ActiveSectionItems.FirstOrDefault();
+                    //var firstElement = control.ActiveSectionItems.FirstOrDefault();
 
                     // aktivér debug test scenarie hvis der laves en tekstboks som det første element.
-                    if (firstElement is TextRegion realText)
-                    {
-                        Console.WriteLine("First element is text");
+                    //if (firstElement is TextRegion realText)
+                    //{
+                        //Console.WriteLine("First element is text");
 
-                        #region Testing
                         // flyt det første element til koordinatet (0, 5)
                         //control.MoveItemGridLocation(firstElement, new Point(0, 2));
 
                         //realText.Text = "👑〖⚡ᖘ๖ۣۜℜΘ𝕵ECT ΘVERRIDE⚡〗👑";
 
-                        /*
                         // Prøv at oprette et tekst element, (der bliver ikke gjort mere ved det lige nu).
-                        Ptc.Controls.Text.TextRegion textRegion = new Ptc.Controls.Text.TextRegion()
-                        {
-                            Text = "INJECTED!",
-                        };
+                        //Ptc.Controls.Text.TextRegion textRegion = new Ptc.Controls.Text.TextRegion()
+                        //{
+                        //    Text = "INJECTED!",
+                        //};
 
                         // Indsæt tekst element.
-                        viewModel.AddItemAtLocation(textRegion, viewModel.GridLocationToWorksheetLocation(new Point(5, 7)));
-                        */
-                        #endregion
+                        //viewModel.AddItemAtLocation(textRegion, viewModel.GridLocationToWorksheetLocation(new Point(5, 7)));
 
                         // Profit! (andre test ting)
-                        /*
-                        if (worksheetData is null)
-                        {
-                            break;
-                        }
-                        
-                        using (Stream xmlStream = SerializeRegions(worksheetData.WorksheetContent))
-                        {
-                            Networking.Networking.TransmitStream(xmlStream);
-                        }*/
+                        //if (worksheetData is null)
+                        //{
+                        //    break;
+                        //}
+                        //
+                        //using (Stream xmlStream = SerializeRegions(worksheetData.WorksheetContent))
+                        //{
+                        //    Networking.Networking.TransmitStream(xmlStream);
+                        //}
 
                         //TcpClient client = new TcpClient("192.168.2.215", 8080);
                         //var tcpStream = client.GetStream();
-                        Networking.Networking.Server.BindListener(IPAddress.Loopback);
-                    }
-                    else if (firstElement is SolveBlockControl solveBlock)
-                    {
-                        Console.WriteLine("First element is solveblock");
-                        Networking.Networking.Client.Connect(IPAddress.Loopback);
-                    }
+                        //Networking.Networking.Server.BindListener(IPAddress.Loopback);
+                    //}
+                    //else if (firstElement is SolveBlockControl solveBlock)
+                    //{
+                    //    Console.WriteLine("First element is solveblock");
+                    //    Networking.Networking.Client.Connect(IPAddress.Loopback);
+                    //}
+                    #endregion
                     break;
                 case "CurrentElement":
                     break;
@@ -274,7 +289,7 @@ namespace ShareCad
                     break;
                 default:
                     break;
-            }
+            }*/
         }
 
         /// <summary>

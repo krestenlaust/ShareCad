@@ -16,6 +16,10 @@ namespace ShareCad
 
         public event Action<NetworkRole> OnActivateShareFunctionality;
 
+        public event Action OnSyncPull;
+
+        public event Action OnSyncPush;
+
         public ControllerWindow()
         {
             InitializeComponent();
@@ -79,6 +83,16 @@ namespace ShareCad
         private void ControlSharecadForm_Load(object sender, EventArgs e)
         {
 
+        }
+
+        private void buttonSyncPush_Click(object sender, EventArgs e)
+        {
+            OnSyncPush?.Invoke();
+        }
+
+        private void buttonSyncPull_Click(object sender, EventArgs e)
+        {
+            OnSyncPull?.Invoke();
         }
     }
 }
