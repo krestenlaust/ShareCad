@@ -1,6 +1,6 @@
-﻿using Networking.Models;
-using Ptc.Controls.Core;
+﻿using Ptc.Controls.Core;
 using Ptc.Controls.Text;
+using Ptc.Controls;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,7 +33,7 @@ namespace ShareCad
             if (!hashBycontrols.TryGetValue(control, out int previousHash))
             {
                 // Generate hash for new control.
-                int? hashCode = GenerateHashcode(control);
+                int? hashCode = GenerateRegionHash(control);
 
                 // check if element type is supported.
                 if (!hashCode.HasValue)
@@ -46,11 +46,11 @@ namespace ShareCad
                 hashBycontrols[control] = hashCode.Value;
                 controlID = controlByID.Count;
 
-                controlByID[controlByID.Count] = control;
+                controlByID[controlID] = control;
             }
 
             // should never return null since control has succeeded before.
-            int? newHash = GenerateHashcode(control);
+            int? newHash = GenerateRegionHash(control);
 
             if (newHash.Value == previousHash)
             {
@@ -62,60 +62,53 @@ namespace ShareCad
             hashBycontrols[control] = newHash.Value;
 
             // netcode-ish. Notify remote.
-
+            // todo: ...
         }
 
         /// <summary>
         /// Called when a control is updated remotely and needs to be changed locally accordingly.
         /// </summary>
         /// <param name="dto"></param>
-        public static void UpdateControlRemote(RegionDto dto)
+        public static void UpdateControlRemote(IWhiteboardItem controlToUpdate)
         {
-            if (!controlByID.TryGetValue(dto.ID, out IWhiteboardItem control))
+            /*
+            if (!controlByID.TryGetValue(controlToUpdate.ichr, out IWhiteboardItem control))
             {
                 // control doesn't exist already, instantiate new.
                 // ...
 
-            }
+            }*/
         }
 
-        private static void DeserializeIntoControl(RegionDto dto, IWhiteboardItem control)
+        /// <summary>
+        /// Generate an identity for a given control.
+        /// </summary>
+        /// <param name="item"></param>
+        /// <returns></returns>
+        private static int? GenerateRegionHash(IWhiteboardItem item)
         {
+            StringBuilder regionIdentity = new StringBuilder();
+            regionIdentity.Append(item.GetType());
+            regionIdentity.Append(item);
+            regionIdentity.Append(item.VerticalAlignmentOffset);
 
-        }
-
-        private static RegionDto SerializeControl(IWhiteboardItem item)
-        {
+            // add region specific attributes.
             switch (item)
             {
                 case TextRegion textRegion:
-                    return new TextRegionDto()
-                    {
-                        //ID = ,
-                        TextContent = textRegion.Text,
-                        GridPosition = new System.Windows.Point(2, 2)
-                    };
-                default:
+                    Console.WriteLine("!!!Textregion");
+                    regionIdentity.Append(textRegion.Height);
+                    regionIdentity.Append(textRegion.Width);
+                    regionIdentity.Append(textRegion.Tag);
                     break;
-            }
-
-            return null;
-        }
-
-        private static int? GenerateHashcode(IWhiteboardItem item)
-        {
-            int? hashcode = null;
-
-            switch (item)
-            {
-                case TextRegion region:
-                    hashcode = region.Text.GetHashCode();
+                case EquationControl equationRegion:
+                    Console.WriteLine("!!!EqRegion");
                     break;
                 default:
                     break;
             }
 
-            return hashcode;
+            return regionIdentity.ToString().GetHashCode();
         }
     }
 }
