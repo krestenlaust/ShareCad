@@ -71,26 +71,3 @@ namespace ShareCad
         private readonly IWorksheetSectionPersistentData _worksheetSectionData;
     }
 }
-
-/*
-            var messageBoxResult = MessageBox.Show("Host?", 
-                "ShareCad", 
-                MessageBoxButton.YesNoCancel,
-                MessageBoxImage.Question, 
-                MessageBoxResult.Cancel, 
-                MessageBoxOptions.DefaultDesktopOnly
-                );
-
-            switch (messageBoxResult)
-            {
-                case MessageBoxResult.Yes:
-                    // stuff
-                    break;
-
-                case MessageBoxResult.No:
-                    // stuff
-                    break;
-
-                default:
-                    break;
-            }*/

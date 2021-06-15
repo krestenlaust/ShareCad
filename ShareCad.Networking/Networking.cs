@@ -28,23 +28,30 @@ namespace Networking
                 return;
             }
 
+            int sourceDataLength = (int)source.Length;
+
+            byte[] data = new byte[source.Length];
+            byte[] dataLengthBytes = BitConverter.GetBytes(sourceDataLength);
+
+            // copy data into byte array.
+            source.Read(data, 0, sourceDataLength);
+
             if (!(Server.Clients is null))
             {
-                using (MemoryStream memoryStream = new MemoryStream())
+                foreach (var client in Server.Clients)
                 {
-                    source.CopyTo(memoryStream);
-                    foreach (var client in Server.Clients)
-                    {
-                        NetworkStream clientStream = client.GetStream();
-                        memoryStream.CopyTo(clientStream);
-                        memoryStream.Position = 0;
-                    }
+                    NetworkStream clientStream = client.GetStream();
+
+                    clientStream.Write(dataLengthBytes, 0, dataLengthBytes.Length);
+                    clientStream.Write(data, 0, data.Length);
                 }
             }
             else if (!(Client.HostClient is null))
             {
                 NetworkStream hostStream = Client.HostClient.GetStream();
-                source.CopyTo(hostStream);
+
+                hostStream.Write(dataLengthBytes, 0, dataLengthBytes.Length);
+                hostStream.Write(data, 0, data.Length);
             }
         }
 
@@ -53,11 +60,11 @@ namespace Networking
         /// </summary>
         /// <param name="stream"></param>
         /// <returns>Whether data was available.</returns>
-        public static bool ReceiveStream(out NetworkStream stream)
+        public static bool ReceiveXml(out string readXml)
         {
             if (!isActive)
             {
-                stream = null;
+                readXml = null;
                 return false;
             }
 
@@ -66,24 +73,52 @@ namespace Networking
                 // is host.
                 foreach (var client in Server.Clients)
                 {
-                    stream = client.GetStream();
+                    NetworkStream stream = client.GetStream();
 
                     if (stream.DataAvailable)
                     {
+                        byte[] xmlData = ReadBytesFromStream(stream);
+                        readXml = Encoding.ASCII.GetString(xmlData);
                         return true;
                     }
+
+                    // only read first client found with data. For.. reasons...
+                    break;
                 }
             }
             else if (!(Client.HostClient is null))
             {
                 // is client.
-                stream = Client.HostClient.GetStream();
+                NetworkStream stream = Client.HostClient.GetStream();
 
-                return stream.DataAvailable;
+                if (stream.DataAvailable)
+                {
+                    byte[] xmlData = ReadBytesFromStream(stream);
+                    readXml = Encoding.ASCII.GetString(xmlData);
+                    return true;
+                }
             }
 
-            stream = null;
+            readXml = null;
             return false;
+        }
+
+        /// <summary>
+        /// Reads the amount of bytes specified by the first integer (4 bytes) of the stream.
+        /// </summary>
+        /// <param name="stream"></param>
+        /// <returns></returns>
+        private static byte[] ReadBytesFromStream(NetworkStream stream)
+        {
+            byte[] dataLengthBytes = new byte[sizeof(int)];
+            stream.Read(dataLengthBytes, 0, sizeof(int));
+
+            int dataLength = BitConverter.ToInt32(dataLengthBytes, 0);
+
+            byte[] data = new byte[dataLength];
+            stream.Read(data, 0, dataLength);
+
+            return data;
         }
 
         public static class Client
@@ -122,7 +157,8 @@ namespace Networking
 
                 HostClient = new TcpClient();
 
-                HostClient.BeginConnect(address, Port, new AsyncCallback(delegate (IAsyncResult ar) {
+                HostClient.BeginConnect(address, Port, new AsyncCallback(delegate (IAsyncResult ar)
+                {
                     try
                     {
                         HostClient.EndConnect(ar);

@@ -24,26 +24,22 @@ using Ptc;
 using Ptc.Serialization;
 using System.Collections.Generic;
 using System.Net;
+using System.Net.Sockets;
+using ShareCad.ControlWindow;
 
 [module: UnverifiableCode]
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
 namespace ShareCad
 {
-    // bliver ikke brugt til noget.
-    internal static class ModuleInitializer
-    {
-        internal static void Run()
-        {
-
-        }
-    }
-
     [HarmonyPatch]
     public class ShareCad
     {
         static EngineeringDocument engineeringDocument;
         static bool initializedModule = false;
 
+        /// <summary>
+        /// Initialize.
+        /// </summary>
         public void ShareCadInit()
         {
             if (initializedModule)
@@ -54,9 +50,17 @@ namespace ShareCad
             var harmony = new Harmony("ShareCad");
             harmony.PatchAll(Assembly.GetExecutingAssembly());
             WinConsole.Initialize();
+            var sharecadControl = new ControlSharecadForm();
+            sharecadControl.OnActivateShareFunctionality += SharecadControl_OnActivateShareFunctionality;
+
 
             Console.WriteLine("LOADED!");
             initializedModule = true;
+        }
+
+        private void SharecadControl_OnActivateShareFunctionality(ControlSharecadForm.NetworkRole obj)
+        {
+            MessageBox.Show(engineeringDocument.WorksheetData.ToString());
         }
 
         // Fra MathcadPrime.exe
@@ -83,12 +87,61 @@ namespace ShareCad
             {
                 engineeringDocument.Worksheet.PropertyChanged += Worksheet_PropertyChanged;
                 engineeringDocument.MouseDoubleClick += EngineeringDocument_MouseDoubleClick;
+                engineeringDocument.ContextMenuOpening += EngineeringDocument_ContextMenuOpening;
+                engineeringDocument.ContextMenuClosing += EngineeringDocument_ContextMenuClosing;
+                engineeringDocument.ManipulationCompleted += EngineeringDocument_ManipulationCompleted;
                 subscribed = true;
             }
 
             //FileLoadResult fileLoadResult = new FileLoadResult();
 
             //engineeringDocument.OpenPackage(ref fileLoadResult, @"C:\Users\kress\Documents\Debug.mcdx", false);
+        }
+
+        private static void EngineeringDocument_ManipulationCompleted(object sender, ManipulationCompletedEventArgs e)
+        {
+            Console.WriteLine("ManipulationCompleted");
+        }
+
+        private static void EngineeringDocument_ContextMenuClosing(object sender, System.Windows.Controls.ContextMenuEventArgs e)
+        {
+            Console.WriteLine("Context menu closing.");
+        }
+
+        private static void EngineeringDocument_ContextMenuOpening(object sender, System.Windows.Controls.ContextMenuEventArgs e)
+        {
+            Console.WriteLine("Context menu opening.");
+
+            WorksheetControl control = (WorksheetControl)((EngineeringDocument)sender).Content;
+            var worksheetData = control.GetWorksheetData();
+
+            if (Networking.Networking.ReceiveXml(out string readXml))
+            {
+                List<IRegionPersistentData> recievedControls = new List<IRegionPersistentData>();
+
+                //var viewModel = ((WorksheetControl)sender).GetViewModel();
+                /*
+                using (MemoryStream memoryStream = new MemoryStream())
+                {
+                    stream.CopyTo(memoryStream);
+
+                    recievedControls = DeserializeSection(memoryStream, worksheetData.WorksheetContent);
+                }*/
+
+                recievedControls = DeserializeSection(readXml, worksheetData.WorksheetContent);
+
+                Console.WriteLine("Incoming data:");
+
+                foreach (var item in recievedControls)
+                {
+                    Console.WriteLine(item);
+                    worksheetData.WorksheetContent.SerializedRegions.Add(item);
+                }
+            }
+            else
+            {
+                Console.WriteLine("No incoming data.");
+            }
         }
 
         private static void EngineeringDocument_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -192,16 +245,17 @@ namespace ShareCad
                         */
                         #endregion
 
+                        // Profit! (andre test ting)
+                        /*
                         if (worksheetData is null)
                         {
                             break;
                         }
-
-                        // Profit! (andre test ting)
+                        
                         using (Stream xmlStream = SerializeRegions(worksheetData.WorksheetContent))
                         {
                             Networking.Networking.TransmitStream(xmlStream);
-                        }
+                        }*/
 
                         //TcpClient client = new TcpClient("192.168.2.215", 8080);
                         //var tcpStream = client.GetStream();
@@ -233,16 +287,6 @@ namespace ShareCad
             throw new NotImplementedException();
         }
 
-        private static void TransferStream(Stream source, Stream target)
-        {
-            int currentByte = source.ReadByte();
-            while (currentByte != -1)
-            {
-                target.WriteByte((byte)currentByte);
-                currentByte = source.ReadByte();
-            }
-        }
-
         private static List<IRegionPersistentData> DeserializeSection(Stream serializedSection, IWorksheetSectionPersistentData sectionData)
         {
             #region old
@@ -267,7 +311,7 @@ namespace ShareCad
 
             using (CustomMcdxDeserializer mcdxDeserializer =
                 new CustomMcdxDeserializer(
-                    serializedSection,
+                    null,
                     new CustomWorksheetSectionDeserializationStrategy(
                         sectionData,
                         engineeringDocument.MathFormat,
@@ -280,6 +324,29 @@ namespace ShareCad
                 )
             {
                 mcdxDeserializer.Deserialize(serializedSection);
+                return (List<IRegionPersistentData>)mcdxDeserializer.DeserializedRegions;
+            }
+        }
+
+        private static List<IRegionPersistentData> DeserializeSection(string xml, IWorksheetSectionPersistentData sectionData)
+        {
+            worksheetRegionCollectionSerializer regionCollectionSerializer = new worksheetRegionCollectionSerializer();
+
+            using (CustomMcdxDeserializer mcdxDeserializer =
+                new CustomMcdxDeserializer(
+                    null,
+                    new CustomWorksheetSectionDeserializationStrategy(
+                        sectionData,
+                        engineeringDocument.MathFormat,
+                        engineeringDocument.LabeledIdFormat
+                        ),
+                    engineeringDocument.DocumentSerializationHelper,
+                    regionCollectionSerializer,
+                    true
+                    )
+                )
+            {
+                mcdxDeserializer.Deserialize(xml);
                 return (List<IRegionPersistentData>)mcdxDeserializer.DeserializedRegions;
             }
         }
@@ -305,26 +372,3 @@ namespace ShareCad
         }
     }
 }
-
-/*
-            var messageBoxResult = MessageBox.Show("Host?", 
-                "ShareCad", 
-                MessageBoxButton.YesNoCancel,
-                MessageBoxImage.Question, 
-                MessageBoxResult.Cancel, 
-                MessageBoxOptions.DefaultDesktopOnly
-                );
-
-            switch (messageBoxResult)
-            {
-                case MessageBoxResult.Yes:
-                    // stuff
-                    break;
-
-                case MessageBoxResult.No:
-                    // stuff
-                    break;
-
-                default:
-                    break;
-            }*/

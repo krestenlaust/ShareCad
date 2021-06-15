@@ -25,9 +25,9 @@ namespace ShareCad
     {
         public IList<IRegionPersistentData> DeserializedRegions { get; private set; }
         public bool SkipRegionsNotAffectingCalculation { get; set; }
-        public ISerializationHelper Helper => this._serializationHelper;
+        public ISerializationHelper Helper => _serializationHelper;
         public XmlNamespaceManager NameSpaceManager => XmlWorksheetData.McdxNameSpaceManager;
-        public XmlDocument XmlContentDocument => this._xmlContentDocument;
+        public XmlDocument XmlContentDocument => _xmlContentDocument;
         public bool UseOverrides { get; private set; }
         public string FilePath => null;
         public PackagePart PackagePart => throw new NotImplementedException();
@@ -41,12 +41,12 @@ namespace ShareCad
 
         public CustomMcdxDeserializer(Stream partStream, IDeserializationStrategy deserializationStrategy, ISerializationHelper serializationHelper, IRegionCollectionSerializer regionCollectionSerializer, bool useOverrides)
         {
-            this._deserializationStrategy = deserializationStrategy;
-            this._serializationHelper = serializationHelper;
-            this._regionCollectionSerializer = regionCollectionSerializer;
-            this._worksheetNodeName = regionCollectionSerializer.RootNodeName;
-            this._sourceStream = partStream;
-            this.UseOverrides = useOverrides;
+            _deserializationStrategy = deserializationStrategy;
+            _serializationHelper = serializationHelper;
+            _regionCollectionSerializer = regionCollectionSerializer;
+            _worksheetNodeName = regionCollectionSerializer.RootNodeName;
+            _sourceStream = partStream;
+            UseOverrides = useOverrides;
         }
 
         public void Deserialize(Stream stream)
@@ -58,12 +58,29 @@ namespace ShareCad
 
             try
             {
-                this._xmlContentDocument = new XmlDocument();
-                SpiritResolver.InitializeDocument(this._xmlContentDocument, SchemasManager.Worksheet50);
-                this._xmlContentDocument.Load(stream);
-                RepairXmlDocument(this._xmlContentDocument);
-                this._xmlContentDocument.Validate(null);
-                Deserialize(this._xmlContentDocument);
+                _xmlContentDocument = new XmlDocument();
+                SpiritResolver.InitializeDocument(_xmlContentDocument, SchemasManager.Worksheet50);
+                _xmlContentDocument.Load(stream);
+                RepairXmlDocument(_xmlContentDocument);
+                _xmlContentDocument.Validate(null);
+                Deserialize(_xmlContentDocument);
+            }
+            catch (Exception ex)
+            {
+                ThrowIncorrectSerializationFormatException(ex);
+            }
+        }
+
+        public void Deserialize(string xml)
+        {
+            try
+            {
+                _xmlContentDocument = new XmlDocument();
+                SpiritResolver.InitializeDocument(_xmlContentDocument, SchemasManager.Worksheet50);
+                _xmlContentDocument.LoadXml(xml);
+                RepairXmlDocument(_xmlContentDocument);
+                _xmlContentDocument.Validate(null);
+                Deserialize(_xmlContentDocument);
             }
             catch (Exception ex)
             {
@@ -76,11 +93,13 @@ namespace ShareCad
         private void RepairPictureElements(XmlDocument xmlContentDocument)
         {
             Version v = new Version("5.2.10");
-            if (this._serializationHelper.SerializedSchemaVersions != null && this._serializationHelper.SerializedSchemaVersions.ContainsKey(SchemasManager.SchemaNameEnum.Worksheet) && this._serializationHelper.SerializedSchemaVersions[SchemasManager.SchemaNameEnum.Worksheet] >= v)
+
+            if (_serializationHelper.SerializedSchemaVersions != null && _serializationHelper.SerializedSchemaVersions.ContainsKey(SchemasManager.SchemaNameEnum.Worksheet) && _serializationHelper.SerializedSchemaVersions[SchemasManager.SchemaNameEnum.Worksheet] >= v)
             {
                 return;
             }
-            XmlNode xmlNode = SpiritResolver.WorksheetRootNode(xmlContentDocument, this.NameSpaceManager, this._worksheetNodeName);
+
+            XmlNode xmlNode = SpiritResolver.WorksheetRootNode(xmlContentDocument, NameSpaceManager, _worksheetNodeName);
             foreach (object obj in xmlNode.FirstChild.ChildNodes)
             {
                 XmlNode xmlNode2 = (XmlNode)obj;
@@ -95,10 +114,10 @@ namespace ShareCad
 
         public void Deserialize(XmlDocument xmlContentDocument)
         {
-            XmlNode xmlNode = SpiritResolver.WorksheetRootNode(xmlContentDocument, this.NameSpaceManager, this._worksheetNodeName);
-            this._regionCollectionSerializer.Deserialize(xmlNode as XmlElement, this.UseOverrides);
-            this.DeserializedRegions = this._deserializationStrategy.SetRegions(this._regionCollectionSerializer.Regions, this);
-            this._deserializationStrategy.DeserializeRegionsEpilog(xmlContentDocument);
+            XmlNode xmlNode = SpiritResolver.WorksheetRootNode(xmlContentDocument, NameSpaceManager, _worksheetNodeName);
+            _regionCollectionSerializer.Deserialize(xmlNode as XmlElement, UseOverrides);
+            DeserializedRegions = _deserializationStrategy.SetRegions(_regionCollectionSerializer.Regions, this);
+            _deserializationStrategy.DeserializeRegionsEpilog(xmlContentDocument);
         }
 
         public void UnpackFlowDocument(ref FlowDocument flowDocument, string itemIdRef)
@@ -144,84 +163,12 @@ namespace ShareCad
             }*/
         }
 
-        public string UnpackExternalObject(string itemIdRef)
-        {
-            throw new NotImplementedException();
+        public string UnpackExternalObject(string itemIdRef) => throw new NotImplementedException();
 
-            /*
-            //Stream sourceStream = PackageOperationsProvider.GetSourceStream(this.PackagePart, itemIdRef);
+        public Stream UnpackProtectedPart(string itemIdRef) => throw new NotImplementedException();
 
-            string text;
-            if (_sourceStream == null)
-            {
-                text = null;
-            }
-            else
-            {
-                //using (sourceStream)
-                //{
-                    text = Path.GetTempFileName();
-                    using (FileStream fileStream = new FileStream(text, FileMode.OpenOrCreate, FileAccess.Write))
-                    {
-                        StreamUtils.CopyStream(_sourceStream, fileStream);
-                    }
-                //}
-            }
-            return text;*/
-        }
+        public void ThrowFirstRegionDeserializationExceptionIfExists() => throw new NotImplementedException();
 
-        public Stream UnpackProtectedPart(string itemIdRef)
-        {
-            throw new NotImplementedException();
-
-            /*
-            ChunkedMemoryStream chunkedMemoryStream;
-            //using (Stream sourceStream = PackageOperationsProvider.GetSourceStream(this.PackagePart, itemIdRef))
-            //{
-                chunkedMemoryStream = new ChunkedMemoryStream();
-                SerializationHelperUtils.CopyObfuscatedStream(_sourceStream, chunkedMemoryStream, 16384);
-            //}
-            return chunkedMemoryStream;*/
-        }
-
-        public void ThrowFirstRegionDeserializationExceptionIfExists()
-        {
-            throw new NotImplementedException();
-
-            /*
-            Exception ex = this.DeserializedRegions.AllDeserializationExceptions().FirstOrDefault<Exception>();
-            if (ex != null)
-            {
-                this.ThrowIncorrectSerializationFormatException(ex);
-            }*/
-        }
-
-        public void Dispose()
-        {
-            this._xmlContentDocument = null;
-        }
+        public void Dispose() => _xmlContentDocument = null;
     }
 }
-
-/*
-            var messageBoxResult = MessageBox.Show("Host?", 
-                "ShareCad", 
-                MessageBoxButton.YesNoCancel,
-                MessageBoxImage.Question, 
-                MessageBoxResult.Cancel, 
-                MessageBoxOptions.DefaultDesktopOnly
-                );
-
-            switch (messageBoxResult)
-            {
-                case MessageBoxResult.Yes:
-                    // stuff
-                    break;
-
-                case MessageBoxResult.No:
-                    // stuff
-                    break;
-
-                default:
-                    break;
-            }*/
