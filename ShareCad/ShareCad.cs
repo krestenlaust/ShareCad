@@ -82,28 +82,17 @@ namespace ShareCad
             //WorksheetControl control = (WorksheetControl)((EngineeringDocument)sender).Content;
             //var worksheetData = control.GetWorksheetData();
 
-            var worksheetData = engineeringDocument.Worksheet.GetWorksheetData();
+            //var worksheetData = engineeringDocument.Worksheet.GetWorksheetData();
 
-            if (worksheetData is null)
-            {
-                Console.WriteLine("No progress :/");
-            }
+            //if (worksheetData is null)
+            //{
+                //Console.WriteLine("No progress :/");
+            //}
 
             if (Networking.Networking.ReceiveXml(out string readXml))
             {
-                List<IRegionPersistentData> recievedControls = new List<IRegionPersistentData>();
-
-                //var viewModel = ((WorksheetControl)sender).GetViewModel();
-
-                recievedControls = DeserializeSection(readXml, worksheetData.WorksheetContent);
-
                 Console.WriteLine("Incoming data:");
-
-                foreach (var item in recievedControls)
-                {
-                    Console.WriteLine(item);
-                    worksheetData.WorksheetContent.SerializedRegions.Add(item);
-                }
+                DeserializeAndApplySection(readXml);
             }
             else
             {
@@ -147,36 +136,8 @@ namespace ShareCad
             if (!subscribed)
             {
                 engineeringDocument.Worksheet.PropertyChanged += Worksheet_PropertyChanged;
-                //engineeringDocument.MouseDoubleClick += EngineeringDocument_MouseDoubleClick;
-                //engineeringDocument.ContextMenuOpening += EngineeringDocument_ContextMenuOpening;
-                //engineeringDocument.ContextMenuClosing += EngineeringDocument_ContextMenuClosing;
-                engineeringDocument.ManipulationCompleted += EngineeringDocument_ManipulationCompleted;
                 subscribed = true;
             }
-
-            //FileLoadResult fileLoadResult = new FileLoadResult();
-
-            //engineeringDocument.OpenPackage(ref fileLoadResult, @"C:\Users\kress\Documents\Debug.mcdx", false);
-        }
-
-        private static void EngineeringDocument_ManipulationCompleted(object sender, ManipulationCompletedEventArgs e)
-        {
-            Console.WriteLine("ManipulationCompleted");
-        }
-
-        private static void EngineeringDocument_ContextMenuClosing(object sender, System.Windows.Controls.ContextMenuEventArgs e)
-        {
-            Console.WriteLine("Context menu closing.");
-        }
-
-        private static void EngineeringDocument_ContextMenuOpening(object sender, System.Windows.Controls.ContextMenuEventArgs e)
-        {
-            Console.WriteLine("Context menu opening.");
-        }
-
-        private static void EngineeringDocument_MouseDoubleClick(object sender, MouseButtonEventArgs e)
-        {
-            Console.WriteLine("Double click!");
         }
 
         private static bool initializedTests;
@@ -343,15 +304,28 @@ namespace ShareCad
             }
         }
 
-        private static List<IRegionPersistentData> DeserializeSection(string xml, IWorksheetSectionPersistentData sectionData)
+        private static void DeserializeAndApplySection(string xml)
         {
             worksheetRegionCollectionSerializer regionCollectionSerializer = new worksheetRegionCollectionSerializer();
+
+            IWorksheetPersistentData worksheetData = new WorksheetPersistentData() 
+            {
+                DisplayGrid = engineeringDocument.WorksheetData.DisplayGrid,
+                GridSize = engineeringDocument.WorksheetData.GridSize,
+                LayoutSize = engineeringDocument.WorksheetData.LayoutSize,
+                MarginType = engineeringDocument.WorksheetData.MarginType,
+                DisplayHFGrid = engineeringDocument.WorksheetData.DisplayHFGrid,
+                OleObjectAutoResize = engineeringDocument.WorksheetData.OleObjectAutoResize,
+                PageOrientation = engineeringDocument.WorksheetData.PageOrientation,
+                PlotBackgroundType = engineeringDocument.WorksheetData.PlotBackgroundType,
+                ShowIOTags = engineeringDocument.WorksheetData.ShowIOTags
+            };
 
             using (CustomMcdxDeserializer mcdxDeserializer =
                 new CustomMcdxDeserializer(
                     null,
                     new CustomWorksheetSectionDeserializationStrategy(
-                        sectionData,
+                        worksheetData.WorksheetContent,
                         engineeringDocument.MathFormat,
                         engineeringDocument.LabeledIdFormat
                         ),
@@ -362,7 +336,9 @@ namespace ShareCad
                 )
             {
                 mcdxDeserializer.Deserialize(xml);
-                return (List<IRegionPersistentData>)mcdxDeserializer.DeserializedRegions;
+                engineeringDocument.DocumentSerializationHelper.MainRegions = mcdxDeserializer.DeserializedRegions;
+
+                engineeringDocument.Worksheet.ApplyWorksheetData(worksheetData);
             }
         }
 
