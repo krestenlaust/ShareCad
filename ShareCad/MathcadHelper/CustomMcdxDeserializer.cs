@@ -39,13 +39,12 @@ namespace ShareCad
         private readonly Stream _sourceStream;
         private XmlDocument _xmlContentDocument;
 
-        public CustomMcdxDeserializer(Stream partStream, IDeserializationStrategy deserializationStrategy, ISerializationHelper serializationHelper, IRegionCollectionSerializer regionCollectionSerializer, bool useOverrides)
+        public CustomMcdxDeserializer(IDeserializationStrategy deserializationStrategy, ISerializationHelper serializationHelper, IRegionCollectionSerializer regionCollectionSerializer, bool useOverrides)
         {
             _deserializationStrategy = deserializationStrategy;
             _serializationHelper = serializationHelper;
             _regionCollectionSerializer = regionCollectionSerializer;
             _worksheetNodeName = regionCollectionSerializer.RootNodeName;
-            _sourceStream = partStream;
             UseOverrides = useOverrides;
         }
 

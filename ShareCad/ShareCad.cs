@@ -1,31 +1,14 @@
 ﻿using HarmonyLib;
-using Microsoft.Win32.SafeHandles;
 using Ptc.Controls;
-using Ptc.Controls.Text;
 using Ptc.Controls.Core;
-using Ptc.Controls.Worksheet;
-using Ptc.Wpf;
-using Ptc.PersistentData;
 using Spirit;
 using System;
-using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Security;
 using System.Security.Permissions;
-using System.Windows;
-using Ptc.Controls.Whiteboard;
-using System.Windows.Input;
-using Ptc.FunctionalitiesLimitation;
-using Networking;
-using System.IO.Packaging;
-using System.IO;
-using Ptc.PersistentDataObjects;
-using Ptc;
-using Ptc.Serialization;
-using System.Collections.Generic;
-using System.Net;
-using System.Net.Sockets;
-
+using System.Xml;
+ 
 [module: UnverifiableCode]
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
 namespace ShareCad
@@ -33,37 +16,75 @@ namespace ShareCad
     [HarmonyPatch]
     public class ShareCad
     {
-        static EngineeringDocument engineeringDocument;
-        static bool initializedModule = false;
+        private static EngineeringDocument engineeringDocument;
+        /// <summary>
+        /// Sand, når modulet er initializeret.
+        /// </summary>
+        private static bool initializedModule = false;
+        /// <summary>
+        /// Sand, når de dokument-specifikke ting, såsom event listeners til dokumentet, er initialiseret.
+        /// </summary>
+        private static bool initializedDocument = false;
+        private static ControllerWindow controllerWindow;
 
         /// <summary>
-        /// Initialize.
+        /// Initialisére harmony og andre funktionaliteter af sharecad.
         /// </summary>
         public void ShareCadInit()
         {
             if (initializedModule)
-            {
                 return;
-            }
+
+            initializedModule = true;
+
 
             var harmony = new Harmony("ShareCad");
             harmony.PatchAll(Assembly.GetExecutingAssembly());
+
+
             WinConsole.Initialize();
-            var sharecadControl = new ControllerWindow();
-            sharecadControl.OnActivateShareFunctionality += SharecadControl_OnActivateShareFunctionality;
-            sharecadControl.OnSyncPull += SharecadControl_OnSyncPull;
-            sharecadControl.OnSyncPush += SharecadControl_OnSyncPush;
-            sharecadControl.Show();
+
+            // opsæt vinduet til at styre delingsfunktionaliteten, men vis det først senere.
+            controllerWindow = new ControllerWindow();
+            controllerWindow.OnActivateShareFunctionality += SharecadControl_OnActivateShareFunctionality;
+            controllerWindow.OnSyncPull += SharecadControl_OnSyncPull;
+            controllerWindow.OnSyncPush += SharecadControl_OnSyncPush;
+            controllerWindow.FormClosing += (object _, System.Windows.Forms.FormClosingEventArgs e) => Environment.Exit(0);
 
             Console.WriteLine("LOADED!");
-            initializedModule = true;
         }
+
+        // Fra MathcadPrime.exe
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(SpiritMainWindow), "NewDocument", new Type[] { typeof(bool), typeof(DocumentReadonlyOptions), typeof(bool) })]
+        public static void Postfix_SpiritMainWindow(ref IEngineeringDocument __result)
+        {
+            if (initializedDocument)
+                return;
+
+            Console.WriteLine("Retrieving document instance.");
+            engineeringDocument = (EngineeringDocument)__result;
+
+            engineeringDocument.Worksheet.PropertyChanged += Worksheet_PropertyChanged;
+
+            // vis vinduet til at styre delingsfunktionaliteten.
+            controllerWindow.Show();
+
+            // register keys
+            //CommandManager.RegisterClassInputBinding(
+            //    typeof(WorksheetControl), 
+            //    new InputBinding(new InputBindingFunctionalityCommandWrapper(WorksheetCommands.ToggleShowGrid), Gestures.CtrlUp));
+
+            initializedDocument = true;
+        }
+
+        /*
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(WpfUtils), "ExecuteOnLayoutUpdated")]
+        public static void Postfix_WpfUtils(ref UIElement element, ref Action action){}*/
 
         private void SharecadControl_OnSyncPush()
         {
-            //WorksheetControl control = (WorksheetControl)((EngineeringDocument)sender).Content;
-            //var worksheetData = control.GetWorksheetData();
-
             var worksheetData = engineeringDocument.Worksheet.GetWorksheetData();
 
             if (worksheetData is null)
@@ -71,28 +92,17 @@ namespace ShareCad
                 return;
             }
 
-            using (Stream xmlStream = SerializeRegions(worksheetData.WorksheetContent))
-            {
-                Networking.Networking.TransmitStream(xmlStream);
-            }
+            XmlDocument xml = ManipulateWorksheet.SerializeRegions(engineeringDocument, worksheetData.WorksheetContent);
+
+            Networking.Transmit(xml.OuterXml);
         }
 
         private void SharecadControl_OnSyncPull()
         {
-            //WorksheetControl control = (WorksheetControl)((EngineeringDocument)sender).Content;
-            //var worksheetData = control.GetWorksheetData();
-
-            //var worksheetData = engineeringDocument.Worksheet.GetWorksheetData();
-
-            //if (worksheetData is null)
-            //{
-                //Console.WriteLine("No progress :/");
-            //}
-
-            if (Networking.Networking.ReceiveXml(out string readXml))
+            if (Networking.ReceiveXml(out string readXml))
             {
-                Console.WriteLine("Incoming data:");
-                DeserializeAndApplySection(readXml);
+                Console.WriteLine("Incoming data.");
+                ManipulateWorksheet.DeserializeAndApplySection(engineeringDocument, readXml);
             }
             else
             {
@@ -105,81 +115,24 @@ namespace ShareCad
             switch (networkRole)
             {
                 case ControllerWindow.NetworkRole.Guest:
-                    Networking.Networking.Client.Connect(IPAddress.Loopback);
+                    Networking.Client.Connect(IPAddress.Loopback);
                     break;
                 case ControllerWindow.NetworkRole.Host:
-                    Networking.Networking.Server.BindListener(IPAddress.Any);
+                    Networking.Server.BindListener(IPAddress.Any);
                     break;
             }
         }
 
-        // Fra MathcadPrime.exe
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(SpiritMainWindow), "NewDocument", new Type[] { typeof(bool), typeof(DocumentReadonlyOptions), typeof(bool) })]
-        public static void Postfix_SpiritMainWindow(ref IEngineeringDocument __result)
-        {
-            engineeringDocument = __result as EngineeringDocument;
-            Console.WriteLine("Retrieved document instance");
-        }
-
-        static bool subscribed = false;
-
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(WpfUtils), "ExecuteOnLayoutUpdated")]
-        public static void Postfix_WpfUtils(ref UIElement element, ref Action action)
-        {
-            if (engineeringDocument is null)
-            {
-                return;
-            }
-
-            if (!subscribed)
-            {
-                engineeringDocument.Worksheet.PropertyChanged += Worksheet_PropertyChanged;
-                subscribed = true;
-            }
-        }
-
-        private static bool initializedTests;
-        private static Package tempPackage;
-        
         private static void Worksheet_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            // register key inputs and other.
-            if (!initializedTests)
-            {
-                initializedTests = true;
-
-                // debug other stuff.
-                //Networking.Networking.SendObject();
-
-                string fileName = Path.GetTempPath() + Guid.NewGuid().ToString();
-
-                tempPackage = Package.Open(fileName, FileMode.CreateNew, FileAccess.ReadWrite);
-
-                // register keys
-                CommandManager.RegisterClassCommandBinding(
-                    typeof(WorksheetControl),
-                    new CommandBinding(
-                        WorksheetCommands.NewSolveBlock,
-                        (o, localE) => SyncroniseExecuted(o, localE),
-                        (_, localE) => { localE.CanExecute = true; }
-                    ));
-
-                /*
-                CommandManager.RegisterClassInputBinding(
-                    typeof(WorksheetControl), 
-                    new InputBinding(new InputBindingFunctionalityCommandWrapper(WorksheetCommands.ToggleShowGrid), Gestures.CtrlUp));*/
-            }
-
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine($"=== {DateTime.Now:HH:mm:ss} - PropertyChange invoked - {e.PropertyName} ===");
             Console.ForegroundColor = ConsoleColor.Gray;
 
-            WorksheetControl control = (WorksheetControl)sender;
-            var worksheetData = control.GetWorksheetData();
+            //WorksheetControl control = (WorksheetControl)sender;
+            //var worksheetData = control.GetWorksheetData();
 
-            var viewModel = control.GetViewModel();
+            //var viewModel = control.GetViewModel();
 
             //Console.WriteLine($" - ActiveItem: {control.ActiveItem}, {control.ActiveDescendant}, {control.CurrentElement}");
             // for at finde ud af hvad der gør dem unik så man kan sende et ID med over nettet.
@@ -251,115 +204,6 @@ namespace ShareCad
                 default:
                     break;
             }*/
-        }
-
-        /// <summary>
-        /// Et forsøg på at have en event ting.
-        /// </summary>
-        /// <param name="target"></param>
-        /// <param name="e"></param>
-        private static void SyncroniseExecuted(object target, ExecutedRoutedEventArgs e)
-        {
-            throw new NotImplementedException();
-        }
-
-        private static List<IRegionPersistentData> DeserializeSection(Stream serializedSection, IWorksheetSectionPersistentData sectionData)
-        {
-            #region old
-            //worksheetRegionCollectionSerializer regionCollectionSerializer = new worksheetRegionCollectionSerializer();
-
-            // deserialize regions
-            // DeserializeWorksheetSection(this.PackageOpsProvider.GetMainPartFromPackage(package), this.WorksheetData.WorksheetContent, worksheetRegionCollectionSerializer, fullFilePath);
-            // DeserializeWorksheetSection(PackagePart, IWorksheetSectionPersistentData, IRegionCollectionSerializer, string);
-
-            /*
-            MethodInfo dynMethod = engineeringDocument.GetType().GetMethod("DeserializeWorksheetSection", BindingFlags.NonPublic | BindingFlags.Instance);
-            dynMethod.Invoke(engineeringDocument, new object[]
-            {
-                deserializeableSection,
-                worksheetContent,
-                worksheetRegionCollectionSerializer,
-                ""
-            });*/
-            #endregion
-
-            worksheetRegionCollectionSerializer regionCollectionSerializer = new worksheetRegionCollectionSerializer();
-
-            using (CustomMcdxDeserializer mcdxDeserializer =
-                new CustomMcdxDeserializer(
-                    null,
-                    new CustomWorksheetSectionDeserializationStrategy(
-                        sectionData,
-                        engineeringDocument.MathFormat,
-                        engineeringDocument.LabeledIdFormat
-                        ),
-                    engineeringDocument.DocumentSerializationHelper,
-                    regionCollectionSerializer,
-                    true
-                    )
-                )
-            {
-                mcdxDeserializer.Deserialize(serializedSection);
-                return (List<IRegionPersistentData>)mcdxDeserializer.DeserializedRegions;
-            }
-        }
-
-        private static void DeserializeAndApplySection(string xml)
-        {
-            worksheetRegionCollectionSerializer regionCollectionSerializer = new worksheetRegionCollectionSerializer();
-
-            IWorksheetPersistentData worksheetData = new WorksheetPersistentData() 
-            {
-                DisplayGrid = engineeringDocument.WorksheetData.DisplayGrid,
-                GridSize = engineeringDocument.WorksheetData.GridSize,
-                LayoutSize = engineeringDocument.WorksheetData.LayoutSize,
-                MarginType = engineeringDocument.WorksheetData.MarginType,
-                DisplayHFGrid = engineeringDocument.WorksheetData.DisplayHFGrid,
-                OleObjectAutoResize = engineeringDocument.WorksheetData.OleObjectAutoResize,
-                PageOrientation = engineeringDocument.WorksheetData.PageOrientation,
-                PlotBackgroundType = engineeringDocument.WorksheetData.PlotBackgroundType,
-                ShowIOTags = engineeringDocument.WorksheetData.ShowIOTags
-            };
-
-            using (CustomMcdxDeserializer mcdxDeserializer =
-                new CustomMcdxDeserializer(
-                    null,
-                    new CustomWorksheetSectionDeserializationStrategy(
-                        worksheetData.WorksheetContent,
-                        engineeringDocument.MathFormat,
-                        engineeringDocument.LabeledIdFormat
-                        ),
-                    engineeringDocument.DocumentSerializationHelper,
-                    regionCollectionSerializer,
-                    true
-                    )
-                )
-            {
-                mcdxDeserializer.Deserialize(xml);
-                engineeringDocument.DocumentSerializationHelper.MainRegions = mcdxDeserializer.DeserializedRegions;
-
-                engineeringDocument.Worksheet.ApplyWorksheetData(worksheetData);
-            }
-        }
-
-        private static Stream SerializeRegions(IWorksheetSectionPersistentData serializableSection)
-        {
-            // Delete part if it already exists in tempPackage.
-            var regionFileLocation = new Uri("/regions.xml", UriKind.Relative);
-            tempPackage.DeletePart(regionFileLocation);
-
-            var part = tempPackage.CreatePart(regionFileLocation, System.Net.Mime.MediaTypeNames.Text.Xml);
-
-            MethodInfo dynMethod = engineeringDocument.GetType().GetMethod("SerializeWorksheetSection", BindingFlags.NonPublic | BindingFlags.Instance);
-            dynMethod.Invoke(engineeringDocument, new object[]
-            {
-                part,
-                serializableSection,
-                (DelegateFunction0<IRegionType>)(() => new worksheetRegionType()),
-                new worksheetRegionCollectionSerializer()
-            });
-
-            return part.GetStream();
         }
     }
 }

@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace ShareCad
 {
     [Obsolete("Ved ikke om der kan laves videre på dette, før vi har en måde at serialisere enkelte regions ad gangen.")]
-    public static class ManipulateRegions
+    public static class ManipulateSingleRegionsOld
     {
         /// <summary>
         /// Stores hash value for a control to check if it has changed.

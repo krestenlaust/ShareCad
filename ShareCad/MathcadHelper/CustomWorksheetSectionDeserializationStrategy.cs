@@ -17,7 +17,7 @@ namespace ShareCad
     {
         public CustomWorksheetSectionDeserializationStrategy(IWorksheetSectionPersistentData sectionData, IMathFormat mathFormat, IDictionary<IdLabels, ExtendedFont> labeledIdFormat)
         {
-            this._worksheetSectionData = sectionData;
+            _worksheetSectionData = sectionData;
             base.DeserializeMathFormat = mathFormat;
             base.DeserializeLabeledIdFormat = labeledIdFormat;
         }
@@ -60,12 +60,12 @@ namespace ShareCad
 
         protected override void AddRegion(IRegionPersistentData regionPersistentData)
         {
-            this._worksheetSectionData.SerializedRegions.Add(regionPersistentData);
+            _worksheetSectionData.SerializedRegions.Add(regionPersistentData);
         }
 
         protected override void CleanUpLastRegion(IRegionPersistentData regionPersistentData)
         {
-            this._worksheetSectionData.SerializedRegions.Remove(regionPersistentData);
+            _worksheetSectionData.SerializedRegions.Remove(regionPersistentData);
         }
 
         private readonly IWorksheetSectionPersistentData _worksheetSectionData;

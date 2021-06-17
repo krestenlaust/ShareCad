@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShareCad", "ShareCad\ShareC
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Patcher", "Patcher\Patcher.csproj", "{B65D920D-3E50-41B6-9811-3B5407A199A8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Networking", "ShareCad.Networking\Networking.csproj", "{60072FEE-7D38-4312-9B31-A016610CF8DF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShareCad.Networking", "ShareCad.Networking\ShareCad.Networking.csproj", "{60072FEE-7D38-4312-9B31-A016610CF8DF}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{0759ACEC-849E-4898-BE04-8761C980AF82}"
 	ProjectSection(SolutionItems) = preProject

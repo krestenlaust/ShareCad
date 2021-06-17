@@ -1,16 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Serialization;
-using System.Windows;
-using System.IO;
 
-namespace Networking
+namespace ShareCad
 {
     public static class Networking
     {
@@ -20,8 +15,39 @@ namespace Networking
         /// True if bound to a port, or connected to a host.
         /// </summary>
         private static bool isActive => !(Client.HostClient is null && Server.Clients is null);
+        private static bool isHost => !(Server.Clients is null);
+        private static bool isClient => !(Client.HostClient is null);
 
-        public static void TransmitStream(Stream source)
+        public static void Transmit(string stringData)
+        {
+            if (!isActive)
+            {
+                return;
+            }
+
+            byte[] data = Encoding.UTF8.GetBytes(stringData);
+            byte[] dataLengthBytes = BitConverter.GetBytes(data.Length);
+
+            if (isHost)
+            {
+                foreach (var client in Server.Clients)
+                {
+                    NetworkStream clientStream = client.GetStream();
+
+                    clientStream.Write(dataLengthBytes, 0, dataLengthBytes.Length);
+                    clientStream.Write(data, 0, data.Length);
+                }
+            }
+            else if (isClient)
+            {
+                NetworkStream hostStream = Client.HostClient.GetStream();
+
+                hostStream.Write(dataLengthBytes, 0, dataLengthBytes.Length);
+                hostStream.Write(data, 0, data.Length);
+            }
+        }
+
+        public static void Transmit(Stream source)
         {
             if (!isActive)
             {
@@ -36,7 +62,7 @@ namespace Networking
             // copy data into byte array.
             source.Read(data, 0, sourceDataLength);
 
-            if (!(Server.Clients is null))
+            if (isHost)
             {
                 foreach (var client in Server.Clients)
                 {
@@ -46,7 +72,7 @@ namespace Networking
                     clientStream.Write(data, 0, data.Length);
                 }
             }
-            else if (!(Client.HostClient is null))
+            else if (isClient)
             {
                 NetworkStream hostStream = Client.HostClient.GetStream();
 
