@@ -92,7 +92,9 @@ namespace ShareCad
                 return;
             }
 
-            XmlDocument xml = ManipulateWorksheet.SerializeRegions(engineeringDocument, worksheetData.WorksheetContent);
+            var regionsToSerialize = worksheetData.WorksheetContent.RegionsToSerialize;
+
+            XmlDocument xml = ManipulateWorksheet.SerializeRegions(regionsToSerialize, engineeringDocument);
 
             Networking.Transmit(xml.OuterXml);
         }

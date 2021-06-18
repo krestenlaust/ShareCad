@@ -1,21 +1,16 @@
-﻿using Ptc.PersistentData;
+﻿using Ptc.Controls.Core.Serialization;
+using Ptc.PersistentData;
+using Ptc.Serialization;
+using Ptc.Xml;
 using System;
-using System.Linq;
+using System.Collections.Generic;
+using System.IO;
+using System.IO.Packaging;
 using System.Security;
 using System.Security.Permissions;
 using System.Windows;
-using Ptc.Controls.Core.Serialization;
-using Ptc.IO;
-using System.IO.Packaging;
-using System.IO;
-using Ptc.PersistentDataObjects;
-using Ptc;
-using Ptc.Serialization;
-using System.Collections.Generic;
-using System.Xml;
 using System.Windows.Documents;
-using MindTouch.IO;
-using Ptc.Xml;
+using System.Xml;
 
 [module: UnverifiableCode]
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
@@ -76,9 +71,11 @@ namespace ShareCad
             {
                 _xmlContentDocument = new XmlDocument();
                 SpiritResolver.InitializeDocument(_xmlContentDocument, SchemasManager.Worksheet50);
+                
                 _xmlContentDocument.LoadXml(xml);
                 RepairXmlDocument(_xmlContentDocument);
                 _xmlContentDocument.Validate(null);
+                
                 Deserialize(_xmlContentDocument);
             }
             catch (Exception ex)

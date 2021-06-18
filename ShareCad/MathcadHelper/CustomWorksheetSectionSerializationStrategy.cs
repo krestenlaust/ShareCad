@@ -12,11 +12,11 @@ namespace ShareCad
 {
     public class CustomWorksheetSectionSerializationStrategy : ISerializationStrategy
 	{
-		public readonly IWorksheetSectionPersistentData _worksheetSectionData;
+		private readonly IDictionary<UIElement, Point> _regionData;
 
-		public CustomWorksheetSectionSerializationStrategy(IWorksheetSectionPersistentData sectionData, DelegateFunction0<IRegionType> worksheetSectionRegionDataCreator)
+		public CustomWorksheetSectionSerializationStrategy(IDictionary<UIElement, Point> serializableRegions, DelegateFunction0<IRegionType> worksheetSectionRegionDataCreator)
 		{
-			_worksheetSectionData = sectionData;
+			_regionData = serializableRegions;
 			_worksheetSectionRegionDataCreator = worksheetSectionRegionDataCreator;
 		}
 		
@@ -30,7 +30,7 @@ namespace ShareCad
 		{
 			List<IRegionType> list = new List<IRegionType>();
 
-			foreach (KeyValuePair<UIElement, Point> keyValuePair in _worksheetSectionData.RegionsToSerialize)
+			foreach (KeyValuePair<UIElement, Point> keyValuePair in _regionData)
 			{
 				IRegionInWhiteboardType regionInWhiteboardType = RegionFactory.Instance.ConvertToIRegionType(_worksheetSectionRegionDataCreator, s11NProvider, keyValuePair.Key) as IRegionInWhiteboardType;
 				regionInWhiteboardType.Location = keyValuePair.Value;

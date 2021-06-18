@@ -1,11 +1,16 @@
 ﻿using Ptc.Controls;
+using Ptc.Controls.Worksheet;
 using Ptc.PersistentData;
 using Ptc.PersistentDataObjects;
+using Ptc.Serialization;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Packaging;
+using System.Linq;
 using System.Security;
 using System.Security.Permissions;
+using System.Windows;
 using System.Xml;
 
 [module: UnverifiableCode]
@@ -39,6 +44,11 @@ namespace ShareCad
                 return;
             }
 
+            //WorksheetControl control = (WorksheetControl)sender;
+            //var worksheetData = control.GetWorksheetData();
+
+            var viewModel = ((WorksheetControl)engineeringDocument.Worksheet).GetViewModel();
+
             worksheetRegionCollectionSerializer regionCollectionSerializer = new worksheetRegionCollectionSerializer();
 
             IWorksheetPersistentData worksheetData = new WorksheetPersistentData()
@@ -68,22 +78,24 @@ namespace ShareCad
                 )
             {
                 mcdxDeserializer.Deserialize(xml);
-                engineeringDocument.DocumentSerializationHelper.MainRegions = mcdxDeserializer.DeserializedRegions;
 
+                var deserializedRegions = mcdxDeserializer.DeserializedRegions;
+
+                engineeringDocument.DocumentSerializationHelper.MainRegions = deserializedRegions;
                 engineeringDocument.Worksheet.ApplyWorksheetData(worksheetData);
             }
         }
 
-        public static XmlDocument SerializeRegions(EngineeringDocument engineeringDocument, IWorksheetSectionPersistentData serializableSection)
+        public static XmlDocument SerializeRegions(IDictionary<UIElement, Point> serializableRegions, ISerializationHelper serializationHelper)
         {
-            worksheetRegionCollectionSerializer regionCollectionSerializer = new worksheetRegionCollectionSerializer();
+            var regionCollectionSerializer = new worksheetRegionCollectionSerializer();
 
-            CustomMcdxSerializer mcdxSerializer = new CustomMcdxSerializer(
+            var mcdxSerializer = new CustomMcdxSerializer(
                 new CustomWorksheetSectionSerializationStrategy(
-                    serializableSection,
+                    serializableRegions,
                     () => new worksheetRegionType()
                     ),
-                engineeringDocument.DocumentSerializationHelper,
+                serializationHelper,
                 regionCollectionSerializer,
                 null,
                 true);
@@ -92,6 +104,9 @@ namespace ShareCad
 
             return mcdxSerializer.XmlContentDocument;
         }
+
+        public static XmlDocument SerializeRegions(IDictionary<UIElement, Point> serializableRegions, EngineeringDocument engineeringDocument) =>
+            SerializeRegions(serializableRegions, engineeringDocument.DocumentSerializationHelper);
 
         /*
         public static Stream SerializeRegions(EngineeringDocument engineeringDocument, IWorksheetSectionPersistentData serializableSection)
