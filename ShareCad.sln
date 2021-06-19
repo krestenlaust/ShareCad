@@ -14,6 +14,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShareCad.Networking.Tests", "ShareCad.Networking.Tests\ShareCad.Networking.Tests.csproj", "{CA0B0154-8E3D-4912-B0BA-3DB545E782C2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug Mathcad|Any CPU = Debug Mathcad|Any CPU
@@ -46,6 +48,14 @@ Global
 		{60072FEE-7D38-4312-9B31-A016610CF8DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{60072FEE-7D38-4312-9B31-A016610CF8DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{60072FEE-7D38-4312-9B31-A016610CF8DF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CA0B0154-8E3D-4912-B0BA-3DB545E782C2}.Debug Mathcad|Any CPU.ActiveCfg = Debug|Any CPU
+		{CA0B0154-8E3D-4912-B0BA-3DB545E782C2}.Debug Mathcad|Any CPU.Build.0 = Debug|Any CPU
+		{CA0B0154-8E3D-4912-B0BA-3DB545E782C2}.Debug Network|Any CPU.ActiveCfg = Debug|Any CPU
+		{CA0B0154-8E3D-4912-B0BA-3DB545E782C2}.Debug Network|Any CPU.Build.0 = Debug|Any CPU
+		{CA0B0154-8E3D-4912-B0BA-3DB545E782C2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CA0B0154-8E3D-4912-B0BA-3DB545E782C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CA0B0154-8E3D-4912-B0BA-3DB545E782C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CA0B0154-8E3D-4912-B0BA-3DB545E782C2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

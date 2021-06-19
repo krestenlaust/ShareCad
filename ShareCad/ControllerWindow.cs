@@ -12,9 +12,9 @@ namespace ShareCad
 {
     public partial class ControllerWindow : Form
     {
-        private NetworkRole networkRole;
+        private Networking.NetworkFunction networkRole;
 
-        public event Action<NetworkRole> OnActivateShareFunctionality;
+        public event Action<Networking.NetworkFunction> OnActivateShareFunctionality;
 
         public event Action OnSyncPull;
 
@@ -25,15 +25,8 @@ namespace ShareCad
             InitializeComponent();
         }
 
-        public enum NetworkRole
-        {
-            Guest,
-            Host
-        }
-
         private void ControllerWindow_Load(object sender, EventArgs e)
         {
-
         }
 
         private void ApplyRadioButtonStyle(RadioButton radioButton)
@@ -62,10 +55,10 @@ namespace ShareCad
             switch (radioButton.Text)
             {
                 case "Vært":
-                    networkRole = NetworkRole.Host;
+                    networkRole = Networking.NetworkFunction.Host;
                     break;
                 case "Gæst":
-                    networkRole = NetworkRole.Guest;
+                    networkRole = Networking.NetworkFunction.Guest;
                     break;
                 default:
                     break;
