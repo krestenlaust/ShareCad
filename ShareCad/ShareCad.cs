@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Security;
 using System.Security.Permissions;
 using System.Text;
+using System.Timers;
 using System.Xml;
 using System.Xml.Linq;
 
@@ -20,6 +21,10 @@ namespace ShareCad
     [HarmonyPatch]
     public class ShareCad
     {
+        /// <summary>
+        /// The least amount of time passing, from the worksheet is changed to the server is notified.
+        /// </summary>
+        private const double UpdateDebounceTimeout = 500;
         private static EngineeringDocument engineeringDocument;
         /// <summary>
         /// Sand, når modulet er initializeret.
@@ -33,6 +38,7 @@ namespace ShareCad
 
         private static Networking.NetworkManager networkManager;
         private static XmlDocument previousDocument;
+        private static Timer networkPushDebounce = new Timer();
 
         /// <summary>
         /// Initialisére harmony og andre funktionaliteter af sharecad.
@@ -53,7 +59,7 @@ namespace ShareCad
             controllerWindow = new ControllerWindow();
             controllerWindow.OnActivateShareFunctionality += SharecadControl_OnActivateShareFunctionality;
             controllerWindow.OnSyncPull += SharecadControl_OnSyncPull;
-            controllerWindow.OnSyncPush += SharecadControl_OnSyncPush;
+            controllerWindow.OnSyncPush += Sharecad_Push;
             controllerWindow.FormClosing += (object _, System.Windows.Forms.FormClosingEventArgs e) => Environment.Exit(0);
 
             Console.WriteLine("LOADED!");
@@ -88,8 +94,9 @@ namespace ShareCad
         [HarmonyPatch(typeof(WpfUtils), "ExecuteOnLayoutUpdated")]
         public static void Postfix_WpfUtils(ref UIElement element, ref Action action){}*/
 
-        private void SharecadControl_OnSyncPush()
+        private void Sharecad_Push()
         {
+            Console.WriteLine("Pushing start");
             var worksheetData = engineeringDocument.Worksheet.GetWorksheetData();
 
             if (worksheetData is null)
@@ -121,6 +128,7 @@ namespace ShareCad
 
             /// TODO: transmit data.
             networkManager.SendDocument(xml);
+            Console.WriteLine("Pushing end");
         }
 
         private void SharecadControl_OnSyncPull()
@@ -151,13 +159,24 @@ namespace ShareCad
             }
 
             networkManager.Client.OnWorksheetUpdate += UpdateWorksheet;
+            networkPushDebounce.Elapsed += (object source, ElapsedEventArgs e) =>
+            {
+                networkPushDebounce.Stop();
+                engineeringDocument.Dispatcher.Invoke(() =>
+                {
+                    Sharecad_Push();
+                });
+            };
         }
 
         private void UpdateWorksheet(XmlDocument doc)
         {
-            Console.WriteLine("You should update your worksheet");
+            engineeringDocument.Dispatcher.Invoke(() =>
+            {
+                Console.WriteLine("You should update your worksheet");
 
-            ManipulateWorksheet.DeserializeAndApplySection(engineeringDocument, doc.OuterXml);
+                ManipulateWorksheet.DeserializeAndApplySection(engineeringDocument, doc.OuterXml);
+            });
         }
 
         private static void Worksheet_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -181,9 +200,6 @@ namespace ShareCad
             //{
             //    Console.WriteLine($"{item.Key}");
             //}
-
-            /*
-            Console.WriteLine();
 
             switch (e.PropertyName)
             {
@@ -238,9 +254,13 @@ namespace ShareCad
                 case "WorksheetPageLayoutMode":
                     // changed from draft to page
                     break;
+                case "IsCalculating":
+                    networkPushDebounce.Interval = UpdateDebounceTimeout;
+                    networkPushDebounce.Start();
+                    break;
                 default:
                     break;
-            }*/
+            }
         }
     }
 

@@ -15,6 +15,7 @@ namespace ShareCad.Networking
         private readonly TcpListener listener;
         private readonly List<Collaborator> clients;
         private XmlDocument currentDocument;
+        private byte availableCollaboratorID;
 
         /// <summary>
         /// 
@@ -48,14 +49,14 @@ namespace ShareCad.Networking
         {
             bool documentSent = false;
 
-            foreach (Collaborator item in clients)
+            foreach (Collaborator currentCollaborator in clients)
             {
-                if (item?.TcpClient is null)
+                if (currentCollaborator?.TcpClient is null)
                 {
                     continue;
                 }
 
-                NetworkStream stream = item.TcpClient.GetStream();
+                NetworkStream stream = currentCollaborator.TcpClient.GetStream();
 
                 Dictionary<PacketType, Packet> packets = new Dictionary<PacketType, Packet>();
                 
@@ -76,7 +77,7 @@ namespace ShareCad.Networking
                             break;
                         case PacketType.DocumentRequest:
                             // send latest version of document to collaborator.
-                            packet = new DocumentRequest();
+                            packet = new DocumentUpdate(currentDocument);
                             break;
                         case PacketType.CursorUpdate:
                             // update local cursor position of collaborator.
@@ -89,6 +90,7 @@ namespace ShareCad.Networking
                     packets[packetType] = packet;
                 }
 
+                /// TODO: Sort packets to make documentrequest the last one.
                 foreach (Packet packet in packets.Values)
                 {
                     packet.Parse();
@@ -96,12 +98,22 @@ namespace ShareCad.Networking
                     switch (packet)
                     {
                         case DocumentUpdate documentUpdate:
-                            UpdateDocumentAll(documentUpdate.XmlDocument);
+                            UpdateDocumentAll(documentUpdate.XmlDocument, currentCollaborator.ID);
                             documentSent = true;
+                            currentDocument = documentUpdate.XmlDocument;
                             break;
-                        case DocumentRequest documentRequest:
+                        case DocumentRequest _:
+                            if (currentDocument is null)
+                            {
+                                break;
+                            }
+
+                            byte[] serializedDocumentPacket = packet.Serialize();
+
+                            stream.Write(serializedDocumentPacket, 0, serializedDocumentPacket.Length);
                             break;
                         case CursorUpdateClient cursorUpdate:
+                            currentCollaborator.CursorLocation = cursorUpdate.Position;
                             break;
                         default:
                             break;
@@ -110,10 +122,11 @@ namespace ShareCad.Networking
             }
         }
 
-        private void UpdateDocumentAll(XmlDocument newDocument)
+        private void UpdateCursorAll(byte collaboratorID, Point position, byte ignoreID=byte.MaxValue)
         {
-            byte[] payload = Encoding.UTF8.GetBytes(newDocument.OuterXml);
-            byte[] byteLength = BitConverter.GetBytes(payload.Length);
+            CursorUpdateServer packet = new CursorUpdateServer(collaboratorID, position);
+
+            byte[] serializedPacket = packet.Serialize();
 
             foreach (var item in clients)
             {
@@ -122,21 +135,46 @@ namespace ShareCad.Networking
                     continue;
                 }
 
-                NetworkStream stream = item.TcpClient.GetStream();
-                stream.WriteByte((byte)PacketType.DocumentUpdate);
-                stream.Write(byteLength, 0, byteLength.Length);
-                stream.Write(payload, 0, payload.Length);
-            }
+                if (item.ID == ignoreID)
+                {
+                    continue;
+                }
 
-            currentDocument = newDocument;
+                NetworkStream stream = item.TcpClient.GetStream();
+                stream.Write(serializedPacket, 0, serializedPacket.Length);
+            }
+        }
+
+        private void UpdateDocumentAll(XmlDocument newDocument, byte ignoreID=byte.MaxValue)
+        {
+            DocumentUpdate packet = new DocumentUpdate(newDocument);
+            byte[] serializedPacket = packet.Serialize();
+
+            foreach (var item in clients)
+            {
+                if (item?.TcpClient is null)
+                {
+                    continue;
+                }
+
+                if (item.ID == ignoreID)
+                {
+                    continue;
+                }
+
+                NetworkStream stream = item.TcpClient.GetStream();
+                stream.Write(serializedPacket, 0, serializedPacket.Length);
+            }
         }
 
         private void ClientConnected(IAsyncResult ar)
         {
             TcpClient newClient = listener.EndAcceptTcpClient(ar);
-            clients.Add(new Collaborator(newClient));
+            listener.BeginAcceptTcpClient(new AsyncCallback(ClientConnected), null);
 
-            Console.WriteLine("A client connected: " + newClient.Client.RemoteEndPoint);
+            clients.Add(new Collaborator(availableCollaboratorID++, newClient));
+
+            Console.WriteLine("A collaborator connected on " + newClient.Client.RemoteEndPoint);
         }
 
         public void Dispose()

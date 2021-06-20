@@ -16,11 +16,15 @@ namespace ShareCad.Networking.Packets
 
         public CursorUpdateServer(byte collaboratorID, Point position)
         {
+            PacketType = PacketType.CursorUpdate;
+
             throw new NotImplementedException();
         }
 
         public CursorUpdateServer(Stream stream)
         {
+            PacketType = PacketType.CursorUpdate;
+
             throw new NotImplementedException();
         }
 

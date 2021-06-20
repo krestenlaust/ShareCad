@@ -130,6 +130,7 @@ namespace ShareCad
             this.buttonSyncPush.BackgroundImage = global::ShareCad.Properties.Resources.upload_icon;
             this.buttonSyncPush.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
             this.buttonSyncPush.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.buttonSyncPush.Enabled = false;
             this.buttonSyncPush.Location = new System.Drawing.Point(403, 3);
             this.buttonSyncPush.Name = "buttonSyncPush";
             this.buttonSyncPush.Size = new System.Drawing.Size(394, 219);
@@ -144,6 +145,7 @@ namespace ShareCad
             this.buttonSyncPull.BackgroundImage = global::ShareCad.Properties.Resources.download_icon;
             this.buttonSyncPull.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
             this.buttonSyncPull.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.buttonSyncPull.Enabled = false;
             this.buttonSyncPull.Location = new System.Drawing.Point(403, 228);
             this.buttonSyncPull.Name = "buttonSyncPull";
             this.buttonSyncPull.Size = new System.Drawing.Size(394, 219);

@@ -12,6 +12,8 @@ namespace ShareCad.Networking.Packets
 
         public DocumentUpdate(Stream stream)
         {
+            PacketType = PacketType.DocumentUpdate;
+            
             byte[] lengthBytes = new byte[sizeof(int)];
             stream.Read(lengthBytes, 0, lengthBytes.Length);
 
@@ -23,6 +25,8 @@ namespace ShareCad.Networking.Packets
 
         public DocumentUpdate(XmlDocument xmlDocument)
         {
+            PacketType = PacketType.DocumentUpdate;
+
             this.XmlDocument = xmlDocument;
         }
 
@@ -32,14 +36,19 @@ namespace ShareCad.Networking.Packets
             XmlDocument.LoadXml(Encoding.UTF8.GetString(serializedData));
         }
 
+        /// <summary>
+        /// [byte] PacketType, [int] Length, [UTF-8] Document content.
+        /// </summary>
+        /// <returns></returns>
         public override byte[] Serialize()
         {
             byte[] data = Encoding.UTF8.GetBytes(XmlDocument.OuterXml);
 
-            byte[] packet = new byte[sizeof(int) + data.Length];
-            data.CopyTo(packet, sizeof(int));
+            byte[] packet = new byte[sizeof(byte) + sizeof(int) + data.Length];
+            packet[0] = (byte)PacketType;
+            data.CopyTo(packet, sizeof(int) + sizeof(byte));
 
-            BitConverter.GetBytes(data.Length).CopyTo(packet, 0);
+            BitConverter.GetBytes(data.Length).CopyTo(packet, sizeof(byte));
 
             return packet;
         }

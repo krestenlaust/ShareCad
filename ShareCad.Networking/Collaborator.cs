@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Net.Sockets;
 using System.Windows;
 using System.Xml;
 
@@ -14,10 +9,12 @@ namespace ShareCad.Networking
         public TcpClient TcpClient;
         public XmlDocument Document;
         public Point CursorLocation;
+        public byte ID;
 
-        public Collaborator(TcpClient tcpClient)
+        public Collaborator(byte id, TcpClient tcpClient)
         {
             this.TcpClient = tcpClient;
+            ID = id;
         }
     }
 }

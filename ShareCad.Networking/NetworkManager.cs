@@ -1,6 +1,7 @@
 ﻿using ShareCad.Networking.Packets;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -18,23 +19,29 @@ namespace ShareCad.Networking
         CursorUpdate = 3,
     }
 
+    /// <summary>
+    /// The responsibilities of a <c>NetworkManager</c>-instance.
+    /// </summary>
     public enum NetworkFunction
     {
         Host,
         Guest
     }
 
+    /// <summary>
+    /// Manages networking in a different thread.
+    /// </summary>
     public class NetworkManager
     {
         public const short DefaultPort = 4040;
-        public const int NetworkUpdateInterval = 1000;
+        public const int NetworkUpdateInterval = 500;
 
+        private readonly NetworkFunction networkRole;
         private Thread networkThread;
         private bool networkRunning = true;
-        private NetworkFunction networkRole;
+        private Server server;
 
         public Client Client { get; private set; }
-        public Server Server { get; private set; }
 
         public NetworkManager(NetworkFunction networkRole)
         {
@@ -58,10 +65,10 @@ namespace ShareCad.Networking
         {
             if (networkRole == NetworkFunction.Host)
             {
-                Server = new Server(endPoint);
+                server = new Server(endPoint);
             }
 
-            Client.Connect(endPoint);
+            Client.Connect(new IPEndPoint(IPAddress.Loopback, endPoint.Port));
 
             networkThread = new Thread(NetworkLoop);
             networkThread.Start();
@@ -77,12 +84,15 @@ namespace ShareCad.Networking
 
         private void NetworkLoop()
         {
+            Stopwatch stopwatch = new Stopwatch();
             while (networkRunning)
             {
+                stopwatch.Restart();
+
                 // Handle server logic.
-                if (Server is Server)
+                if (server is Server)
                 {
-                    Server.Update();
+                    server.Update();
                 }
 
                 // Handle client logic.
@@ -91,18 +101,19 @@ namespace ShareCad.Networking
                     Client.Update();
                 }
 
-                Thread.Sleep(NetworkUpdateInterval);
+                while (stopwatch.ElapsedMilliseconds < NetworkUpdateInterval)
+                    Thread.Sleep(0);
             }
 
-            Server.Dispose();
+            server.Dispose();
             Client.Dispose();
         }
         
-        public void SendDocument(XmlDocument document) => SendPacket(PacketType.DocumentUpdate, new DocumentUpdate(document));
+        public void SendDocument(XmlDocument document) => SendPacket(new DocumentUpdate(document));
 
-        public void SendCursorPosition(Point position) => SendPacket(PacketType.CursorUpdate, new CursorUpdateClient(position));
+        public void SendCursorPosition(Point position) => SendPacket(new CursorUpdateClient(position));
 
-        private void SendPacket(PacketType packetType, Packet packet)
+        private void SendPacket(Packet packet)
         {
             if (Client?.HostClient is null)
             {
@@ -111,7 +122,6 @@ namespace ShareCad.Networking
 
             NetworkStream stream = Client.HostClient.GetStream();
 
-            stream.WriteByte((byte)packetType);
             byte[] data = packet.Serialize();
             stream.Write(data, 0, data.Length);
         }
