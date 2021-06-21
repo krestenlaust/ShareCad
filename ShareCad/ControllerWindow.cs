@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.Net;
 using System.Windows.Forms;
 
 namespace ShareCad
@@ -8,11 +9,8 @@ namespace ShareCad
     {
         private Networking.NetworkFunction networkRole;
 
-        public event Action<Networking.NetworkFunction> OnActivateShareFunctionality;
+        public event Action<Networking.NetworkFunction, IPAddress> OnActivateShareFunctionality;
 
-        public event Action OnSyncPull;
-
-        public event Action OnSyncPush;
 
         public ControllerWindow()
         {
@@ -61,11 +59,17 @@ namespace ShareCad
 
         private void buttonActivateNetworking_Click(object sender, EventArgs e)
         {
+            if (!IPAddress.TryParse(textBoxGuestTargetIP.Text, out IPAddress targetAddress))
+            {
+                MessageBox.Show("Ugyldig IP addresse indtastet");
+                return;
+            }
+
             radioButtonGuest.Enabled = false;
             radioButtonHost.Enabled = false;
             buttonActivateNetworking.Enabled = false;
 
-            OnActivateShareFunctionality?.Invoke(networkRole);
+            OnActivateShareFunctionality?.Invoke(networkRole, targetAddress);
         }
 
         private void ControlSharecadForm_Load(object sender, EventArgs e)
@@ -73,14 +77,9 @@ namespace ShareCad
 
         }
 
-        private void buttonSyncPush_Click(object sender, EventArgs e)
+        private void radioButtonGuest_CheckedChanged(object sender, EventArgs e)
         {
-            OnSyncPush?.Invoke();
-        }
 
-        private void buttonSyncPull_Click(object sender, EventArgs e)
-        {
-            OnSyncPull?.Invoke();
         }
     }
 }

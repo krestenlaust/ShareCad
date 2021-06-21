@@ -2,6 +2,7 @@
 using Microsoft.XmlDiffPatch;
 using Ptc.Controls;
 using Ptc.Controls.Core;
+using Ptc.Controls.Whiteboard;
 using Spirit;
 using System;
 using System.Linq;
@@ -21,10 +22,13 @@ namespace ShareCad
     [HarmonyPatch]
     public class ShareCad
     {
+        private const string UploadIcon = "";//@"C:\Users\kress\source\repos\ShareCad\ShareCad\Resources\upload_icon.png";
+        private const string DownloadIcon = "";//@"C:\Users\kress\source\repos\ShareCad\ShareCad\Resources\download_icon.png";
         /// <summary>
         /// The least amount of time passing, from the worksheet is changed to the server is notified.
         /// </summary>
-        private const double UpdateDebounceTimeout = 500;
+        private const double Update_DebounceTimeout = 500;
+
         private static EngineeringDocument engineeringDocument;
         /// <summary>
         /// Sand, når modulet er initializeret.
@@ -37,8 +41,8 @@ namespace ShareCad
         private static ControllerWindow controllerWindow;
 
         private static Networking.NetworkManager networkManager;
-        private static XmlDocument previousDocument;
         private static Timer networkPushDebounce = new Timer();
+        private static bool ignoreFirstNetworkPush = true;
 
         /// <summary>
         /// Initialisére harmony og andre funktionaliteter af sharecad.
@@ -58,14 +62,15 @@ namespace ShareCad
             // opsæt vinduet til at styre delingsfunktionaliteten, men vis det først senere.
             controllerWindow = new ControllerWindow();
             controllerWindow.OnActivateShareFunctionality += SharecadControl_OnActivateShareFunctionality;
-            controllerWindow.OnSyncPull += SharecadControl_OnSyncPull;
-            controllerWindow.OnSyncPush += Sharecad_Push;
             controllerWindow.FormClosing += (object _, System.Windows.Forms.FormClosingEventArgs e) => Environment.Exit(0);
 
             Console.WriteLine("LOADED!");
         }
 
-        // Fra MathcadPrime.exe
+        /// <summary>
+        /// Initialisére konkrete funktionaliteter forbundet med det nye dokument.
+        /// </summary>
+        /// <param name="__result"></param>
         [HarmonyPostfix]
         [HarmonyPatch(typeof(SpiritMainWindow), "NewDocument", new Type[] { typeof(bool), typeof(DocumentReadonlyOptions), typeof(bool) })]
         public static void Postfix_SpiritMainWindow(ref IEngineeringDocument __result)
@@ -77,6 +82,10 @@ namespace ShareCad
             engineeringDocument = (EngineeringDocument)__result;
 
             engineeringDocument.Worksheet.PropertyChanged += Worksheet_PropertyChanged;
+
+            engineeringDocument.DocumentTabIcon = @"C:\Users\kress\source\repos\ShareCad\ShareCad\Resources\upload_icon.png";
+            Console.WriteLine("DocumentTabIcon: " + engineeringDocument.DocumentTabIcon);
+            Console.WriteLine("CustomizedClosePrompt: " + engineeringDocument.CustomizedClosePrompt);
 
             // vis vinduet til at styre delingsfunktionaliteten.
             controllerWindow.Show();
@@ -101,6 +110,7 @@ namespace ShareCad
 
             if (worksheetData is null)
             {
+                engineeringDocument.DocumentTabIcon = "";
                 return;
             }
 
@@ -129,29 +139,16 @@ namespace ShareCad
             /// TODO: transmit data.
             networkManager.SendDocument(xml);
             Console.WriteLine("Pushing end");
+            engineeringDocument.DocumentTabIcon = "";
         }
 
-        private void SharecadControl_OnSyncPull()
-        {
-            /*
-            if (Networking.ReceiveXml(out string readXml))
-            {
-                Console.WriteLine("Incoming data.");
-                
-            }
-            else
-            {
-                Console.WriteLine("No incoming data.");
-            }*/
-        }
-
-        private void SharecadControl_OnActivateShareFunctionality(Networking.NetworkFunction networkRole)
+        private void SharecadControl_OnActivateShareFunctionality(Networking.NetworkFunction networkRole, IPAddress guestTargetIPAddress)
         {
             networkManager = new Networking.NetworkManager(networkRole);
 
             if (networkRole == Networking.NetworkFunction.Guest)
             {
-                networkManager.Start(IPAddress.Loopback);
+                networkManager.Start(guestTargetIPAddress);
             }
             else
             {
@@ -159,9 +156,19 @@ namespace ShareCad
             }
 
             networkManager.Client.OnWorksheetUpdate += UpdateWorksheet;
+
             networkPushDebounce.Elapsed += (object source, ElapsedEventArgs e) =>
             {
                 networkPushDebounce.Stop();
+
+                if (ignoreFirstNetworkPush)
+                {
+                    Console.WriteLine("Ignored this push");
+                    ignoreFirstNetworkPush = false;
+                    engineeringDocument.DocumentTabIcon = "";
+                    return;
+                }
+
                 engineeringDocument.Dispatcher.Invoke(() =>
                 {
                     Sharecad_Push();
@@ -173,9 +180,12 @@ namespace ShareCad
         {
             engineeringDocument.Dispatcher.Invoke(() =>
             {
-                Console.WriteLine("You should update your worksheet");
+                engineeringDocument.DocumentTabIcon = DownloadIcon;
+                Console.WriteLine("Your worksheet has been updated");
 
+                ignoreFirstNetworkPush = true;
                 ManipulateWorksheet.DeserializeAndApplySection(engineeringDocument, doc.OuterXml);
+                engineeringDocument.DocumentTabIcon = "";
             });
         }
 
@@ -255,8 +265,9 @@ namespace ShareCad
                     // changed from draft to page
                     break;
                 case "IsCalculating":
-                    networkPushDebounce.Interval = UpdateDebounceTimeout;
+                    networkPushDebounce.Interval = Update_DebounceTimeout;
                     networkPushDebounce.Start();
+                    engineeringDocument.DocumentTabIcon = UploadIcon;
                     break;
                 default:
                     break;

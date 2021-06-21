@@ -67,8 +67,9 @@
     <Reference Include="0Harmony">
       <HintPath>..\Libs\0Harmony.dll</HintPath>
     </Reference>
-    <Reference Include="MathcadPrime">
-      <HintPath>..\Libs\MathcadPrime.exe</HintPath>
+    <Reference Include="MathcadPrime, Version=2.0.6361.11827, Culture=neutral, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\MathcadPrime.exe</HintPath>
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -158,8 +159,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\Program Files\PTC\Mathcad Prime 4.0\Ptc.Controls.Worksheet.resources.dll</HintPath>
     </Reference>
-    <Reference Include="Ptc.ControlsModified">
-      <HintPath>..\Ptc.ControlsModified.dll</HintPath>
+    <Reference Include="Ptc.Controls_Hackerinoed, Version=1.0.6361.11811, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Ptc.Controls_Hackerinoed.dll</HintPath>
     </Reference>
     <Reference Include="Ptc.Core">
       <HintPath>..\Libs\Ptc.Core.dll</HintPath>

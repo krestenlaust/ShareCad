@@ -32,11 +32,10 @@ namespace ShareCad
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.radioButtonHost = new System.Windows.Forms.RadioButton();
-            this.radioButtonGuest = new System.Windows.Forms.RadioButton();
             this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
             this.buttonActivateNetworking = new System.Windows.Forms.Button();
-            this.buttonSyncPush = new System.Windows.Forms.Button();
-            this.buttonSyncPull = new System.Windows.Forms.Button();
+            this.textBoxGuestTargetIP = new System.Windows.Forms.TextBox();
+            this.radioButtonGuest = new System.Windows.Forms.RadioButton();
             this.groupBox1.SuspendLayout();
             this.tableLayoutPanel1.SuspendLayout();
             this.tableLayoutPanel2.SuspendLayout();
@@ -48,7 +47,7 @@ namespace ShareCad
             this.groupBox1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.groupBox1.Location = new System.Drawing.Point(3, 3);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(394, 219);
+            this.groupBox1.Size = new System.Drawing.Size(468, 219);
             this.groupBox1.TabIndex = 1;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Jeg er..";
@@ -59,14 +58,16 @@ namespace ShareCad
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 20F));
             this.tableLayoutPanel1.Controls.Add(this.radioButtonHost, 0, 0);
+            this.tableLayoutPanel1.Controls.Add(this.textBoxGuestTargetIP, 0, 2);
             this.tableLayoutPanel1.Controls.Add(this.radioButtonGuest, 0, 1);
             this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tableLayoutPanel1.Location = new System.Drawing.Point(3, 18);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
-            this.tableLayoutPanel1.RowCount = 2;
+            this.tableLayoutPanel1.RowCount = 3;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(388, 198);
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(462, 198);
             this.tableLayoutPanel1.TabIndex = 0;
             // 
             // radioButtonHost
@@ -76,42 +77,27 @@ namespace ShareCad
             this.radioButtonHost.Dock = System.Windows.Forms.DockStyle.Fill;
             this.radioButtonHost.Location = new System.Drawing.Point(3, 3);
             this.radioButtonHost.Name = "radioButtonHost";
-            this.radioButtonHost.Size = new System.Drawing.Size(382, 93);
+            this.radioButtonHost.Size = new System.Drawing.Size(456, 83);
             this.radioButtonHost.TabIndex = 0;
             this.radioButtonHost.TabStop = true;
             this.radioButtonHost.Text = "Vært";
             this.radioButtonHost.UseVisualStyleBackColor = false;
             this.radioButtonHost.CheckedChanged += new System.EventHandler(this.RadioButton_CheckedChanged);
             // 
-            // radioButtonGuest
-            // 
-            this.radioButtonGuest.AutoSize = true;
-            this.radioButtonGuest.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.radioButtonGuest.Location = new System.Drawing.Point(3, 102);
-            this.radioButtonGuest.Name = "radioButtonGuest";
-            this.radioButtonGuest.Size = new System.Drawing.Size(382, 93);
-            this.radioButtonGuest.TabIndex = 1;
-            this.radioButtonGuest.TabStop = true;
-            this.radioButtonGuest.Text = "Gæst";
-            this.radioButtonGuest.UseVisualStyleBackColor = true;
-            this.radioButtonGuest.CheckedChanged += new System.EventHandler(this.RadioButton_CheckedChanged);
-            // 
             // tableLayoutPanel2
             // 
-            this.tableLayoutPanel2.ColumnCount = 2;
-            this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            this.tableLayoutPanel2.ColumnCount = 1;
+            this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.tableLayoutPanel2.Controls.Add(this.groupBox1, 0, 0);
             this.tableLayoutPanel2.Controls.Add(this.buttonActivateNetworking, 0, 1);
-            this.tableLayoutPanel2.Controls.Add(this.buttonSyncPush, 1, 0);
-            this.tableLayoutPanel2.Controls.Add(this.buttonSyncPull, 1, 1);
             this.tableLayoutPanel2.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tableLayoutPanel2.Location = new System.Drawing.Point(0, 0);
             this.tableLayoutPanel2.Name = "tableLayoutPanel2";
             this.tableLayoutPanel2.RowCount = 2;
             this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
             this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tableLayoutPanel2.Size = new System.Drawing.Size(800, 450);
+            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
+            this.tableLayoutPanel2.Size = new System.Drawing.Size(474, 450);
             this.tableLayoutPanel2.TabIndex = 3;
             // 
             // buttonActivateNetworking
@@ -119,47 +105,38 @@ namespace ShareCad
             this.buttonActivateNetworking.Dock = System.Windows.Forms.DockStyle.Fill;
             this.buttonActivateNetworking.Location = new System.Drawing.Point(3, 228);
             this.buttonActivateNetworking.Name = "buttonActivateNetworking";
-            this.buttonActivateNetworking.Size = new System.Drawing.Size(394, 219);
+            this.buttonActivateNetworking.Size = new System.Drawing.Size(468, 219);
             this.buttonActivateNetworking.TabIndex = 2;
             this.buttonActivateNetworking.Text = "Aktivér deling";
             this.buttonActivateNetworking.UseVisualStyleBackColor = true;
             this.buttonActivateNetworking.Click += new System.EventHandler(this.buttonActivateNetworking_Click);
             // 
-            // buttonSyncPush
+            // textBoxGuestTargetIP
             // 
-            this.buttonSyncPush.BackgroundImage = global::ShareCad.Properties.Resources.upload_icon;
-            this.buttonSyncPush.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
-            this.buttonSyncPush.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.buttonSyncPush.Enabled = false;
-            this.buttonSyncPush.Location = new System.Drawing.Point(403, 3);
-            this.buttonSyncPush.Name = "buttonSyncPush";
-            this.buttonSyncPush.Size = new System.Drawing.Size(394, 219);
-            this.buttonSyncPush.TabIndex = 3;
-            this.buttonSyncPush.Text = "Synkroniser ved at skubbe";
-            this.buttonSyncPush.TextAlign = System.Drawing.ContentAlignment.TopCenter;
-            this.buttonSyncPush.UseVisualStyleBackColor = true;
-            this.buttonSyncPush.Click += new System.EventHandler(this.buttonSyncPush_Click);
+            this.textBoxGuestTargetIP.Location = new System.Drawing.Point(3, 181);
+            this.textBoxGuestTargetIP.Name = "textBoxGuestTargetIP";
+            this.textBoxGuestTargetIP.Size = new System.Drawing.Size(222, 22);
+            this.textBoxGuestTargetIP.TabIndex = 6;
+            this.textBoxGuestTargetIP.Text = "127.0.0.1";
             // 
-            // buttonSyncPull
+            // radioButtonGuest
             // 
-            this.buttonSyncPull.BackgroundImage = global::ShareCad.Properties.Resources.download_icon;
-            this.buttonSyncPull.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
-            this.buttonSyncPull.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.buttonSyncPull.Enabled = false;
-            this.buttonSyncPull.Location = new System.Drawing.Point(403, 228);
-            this.buttonSyncPull.Name = "buttonSyncPull";
-            this.buttonSyncPull.Size = new System.Drawing.Size(394, 219);
-            this.buttonSyncPull.TabIndex = 4;
-            this.buttonSyncPull.Text = "Synkroniser ved at hente";
-            this.buttonSyncPull.TextAlign = System.Drawing.ContentAlignment.TopCenter;
-            this.buttonSyncPull.UseVisualStyleBackColor = true;
-            this.buttonSyncPull.Click += new System.EventHandler(this.buttonSyncPull_Click);
+            this.radioButtonGuest.AutoSize = true;
+            this.radioButtonGuest.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.radioButtonGuest.Location = new System.Drawing.Point(3, 92);
+            this.radioButtonGuest.Name = "radioButtonGuest";
+            this.radioButtonGuest.Size = new System.Drawing.Size(456, 83);
+            this.radioButtonGuest.TabIndex = 1;
+            this.radioButtonGuest.TabStop = true;
+            this.radioButtonGuest.Text = "Gæst";
+            this.radioButtonGuest.UseVisualStyleBackColor = false;
+            this.radioButtonGuest.CheckedChanged += new System.EventHandler(this.RadioButton_CheckedChanged);
             // 
             // ControllerWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 450);
+            this.ClientSize = new System.Drawing.Size(474, 450);
             this.Controls.Add(this.tableLayoutPanel2);
             this.Name = "ControllerWindow";
             this.Text = "ControllerWindow";
@@ -177,10 +154,9 @@ namespace ShareCad
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
         private System.Windows.Forms.RadioButton radioButtonHost;
-        private System.Windows.Forms.RadioButton radioButtonGuest;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel2;
         private System.Windows.Forms.Button buttonActivateNetworking;
-        private System.Windows.Forms.Button buttonSyncPush;
-        private System.Windows.Forms.Button buttonSyncPull;
+        private System.Windows.Forms.TextBox textBoxGuestTargetIP;
+        private System.Windows.Forms.RadioButton radioButtonGuest;
     }
 }

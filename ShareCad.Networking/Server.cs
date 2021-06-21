@@ -12,6 +12,8 @@ namespace ShareCad.Networking
 {
     public class Server : IDisposable
     {
+        private const string EmptyDocumentXML = "<worksheet xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:ve=\"http://schemas.openxmlformats.org/markup-compatibility/2006\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\" xmlns:ws=\"http://schemas.mathsoft.com/worksheet50\" xmlns:ml=\"http://schemas.mathsoft.com/math50\" xmlns:u=\"http://schemas.mathsoft.com/units10\" xmlns:p=\"http://schemas.mathsoft.com/provenance10\" xmlns=\"http://schemas.mathsoft.com/worksheet50\"><regions /></worksheet>";
+
         private readonly TcpListener listener;
         private readonly List<Collaborator> clients;
         private XmlDocument currentDocument;
@@ -24,6 +26,9 @@ namespace ShareCad.Networking
         /// <exception cref="SocketException">Thrown when listener can't be established.</exception>
         public Server(IPEndPoint bindAddress)
         {
+            currentDocument = new XmlDocument();
+            currentDocument.LoadXml(EmptyDocumentXML);
+
             clients = new List<Collaborator>();
 
             /// TODO: Improve error-handling.
@@ -157,10 +162,10 @@ namespace ShareCad.Networking
                     continue;
                 }
 
-                if (item.ID == ignoreID)
-                {
-                    continue;
-                }
+                //if (item.ID == ignoreID)
+                //{
+                //    continue;
+                //}
 
                 NetworkStream stream = item.TcpClient.GetStream();
                 stream.Write(serializedPacket, 0, serializedPacket.Length);
@@ -175,6 +180,13 @@ namespace ShareCad.Networking
             clients.Add(new Collaborator(availableCollaboratorID++, newClient));
 
             Console.WriteLine("A collaborator connected on " + newClient.Client.RemoteEndPoint);
+
+            // send latest document state.
+            DocumentUpdate packet = new DocumentUpdate(currentDocument);
+            byte[] serializedPacket = packet.Serialize();
+
+            NetworkStream stream = newClient.GetStream();
+            stream.Write(serializedPacket, 0, serializedPacket.Length);
         }
 
         public void Dispose()

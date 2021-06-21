@@ -136,6 +136,7 @@ namespace ShareCad.Networking
             stream.Write(data, 0, data.Length);
         }*/
 
+        /*
         /// <summary>
         /// Reads the next X bytes and converts to UTF8-string, where X is the first integer in the stream.
         /// </summary>
@@ -152,6 +153,6 @@ namespace ShareCad.Networking
             stream.Read(data, 0, dataLength);
 
             return Encoding.UTF8.GetString(data);
-        }
+        }*/
     }
 }

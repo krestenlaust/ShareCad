@@ -1,8 +1,14 @@
-﻿using Ptc.Controls;
+﻿using Ptc;
+using Ptc.Controls;
+using Ptc.Controls.Core;
+using Ptc.Controls.ExcelComponent;
+using Ptc.Controls.Include;
+using Ptc.Controls.Whiteboard;
 using Ptc.Controls.Worksheet;
 using Ptc.PersistentData;
 using Ptc.PersistentDataObjects;
 using Ptc.Serialization;
+using Ptc.Undo;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -78,11 +84,11 @@ namespace ShareCad
                 )
             {
                 mcdxDeserializer.Deserialize(xml);
-
                 var deserializedRegions = mcdxDeserializer.DeserializedRegions;
-
+                
                 engineeringDocument.DocumentSerializationHelper.MainRegions = deserializedRegions;
-                engineeringDocument.Worksheet.ApplyWorksheetData(worksheetData);
+
+                ((WorksheetControl)engineeringDocument.Worksheet).ApplyWorksheetDataLite(worksheetData);
             }
         }
 
