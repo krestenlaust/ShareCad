@@ -79,6 +79,10 @@
     <Reference Include="Ptc.Calculation.Core.resources">
       <HintPath>..\Libs\Ptc.Calculation.Core.resources.dll</HintPath>
     </Reference>
+    <Reference Include="Ptc.Controls, Version=1.0.6361.11811, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Deinternalizer\bin\Debug\Ptc.Controls.dll</HintPath>
+    </Reference>
     <Reference Include="Ptc.Controls.CollapsibleArea, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\Program Files\PTC\Mathcad Prime 4.0\Ptc.Controls.CollapsibleArea.dll</HintPath>
@@ -153,15 +157,11 @@
     </Reference>
     <Reference Include="Ptc.Controls.Worksheet, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\Program Files\PTC\Mathcad Prime 4.0\Ptc.Controls.Worksheet.dll</HintPath>
+      <HintPath>..\Deinternalizer\bin\Debug\Ptc.Controls.Worksheet.dll</HintPath>
     </Reference>
     <Reference Include="Ptc.Controls.Worksheet.resources, Version=1.0.0.0, Culture=en-US, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\Program Files\PTC\Mathcad Prime 4.0\Ptc.Controls.Worksheet.resources.dll</HintPath>
-    </Reference>
-    <Reference Include="Ptc.Controls_Hackerinoed, Version=1.0.6361.11811, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Ptc.Controls_Hackerinoed.dll</HintPath>
     </Reference>
     <Reference Include="Ptc.Core">
       <HintPath>..\Libs\Ptc.Core.dll</HintPath>

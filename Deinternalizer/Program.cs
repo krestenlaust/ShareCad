@@ -16,11 +16,17 @@ namespace Deinternalizer
         {
             using (AssemblyDefinition a = AssemblyDefinition.ReadAssembly(args[0], new ReaderParameters { ReadWrite = true }))
             {
+                int current = 0;
                 foreach (var type in a.Modules[0].Types)
                 {
-                    if (type.IsNestedAssembly)
+                    if (type.IsNotPublic)
+                    {
+                        current++;
                         type.IsPublic = true;
+                        Console.WriteLine(type.FullName);
+                    }
                 }
+
                 a.Write();
             }
         }

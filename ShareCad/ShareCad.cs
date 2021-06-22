@@ -1,8 +1,6 @@
 ﻿using HarmonyLib;
-using Microsoft.XmlDiffPatch;
 using Ptc.Controls;
 using Ptc.Controls.Core;
-using Ptc.Controls.Whiteboard;
 using Spirit;
 using System;
 using System.Linq;
@@ -13,7 +11,6 @@ using System.Security.Permissions;
 using System.Text;
 using System.Timers;
 using System.Xml;
-using System.Xml.Linq;
 
 [module: UnverifiableCode]
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
@@ -27,7 +24,7 @@ namespace ShareCad
         /// <summary>
         /// The least amount of time passing, from the worksheet is changed to the server is notified.
         /// </summary>
-        private const double Update_DebounceTimeout = 500;
+        private const double Update_DebounceTimeout = 100;
 
         private static EngineeringDocument engineeringDocument;
         /// <summary>
@@ -271,145 +268,6 @@ namespace ShareCad
                     break;
                 default:
                     break;
-            }
-        }
-    }
-
-    /*
-     * Use this class for quickly merging two XML web.config files into one file.
-     * 2015-06-30, Uwe Keim, http://www.zeta-test.com
-    */
-    public static class XmlDocumentMergeController
-    {
-        public static string MergeDocuments(
-            string xmlToMergeFrom,
-            string xmlToMergeInto)
-        {
-            if (string.IsNullOrEmpty(xmlToMergeFrom)) return xmlToMergeInto;
-            else if (string.IsNullOrEmpty(xmlToMergeInto)) return xmlToMergeFrom;
-            else if (string.IsNullOrEmpty(xmlToMergeFrom) &&
-                     string.IsNullOrEmpty(xmlToMergeInto)) return xmlToMergeInto;
-
-            // --
-
-            var sourceDoc = new XmlDocument();
-            var destDoc = new XmlDocument();
-
-            sourceDoc.LoadXml(xmlToMergeFrom);
-            destDoc.LoadXml(xmlToMergeInto);
-
-            // --
-
-            foreach (
-                var sourceNode in sourceDoc.ChildNodes.Cast<XmlNode>().Where(n => n.NodeType == XmlNodeType.Element))
-            {
-                doProcessNode(sourceNode, destDoc);
-            }
-
-            // --
-
-            return destDoc.OuterXml;
-        }
-
-        private static void doProcessNode(XmlNode sourceNode, XmlNode destParentNode)
-        {
-            var destNode = findNode(sourceNode, destParentNode.OwnerDocumentIntelligent());
-            if (destNode == null)
-            {
-                // Gibt es noch nicht, einfach rüber kopieren.
-                copyNode(sourceNode, destParentNode);
-            }
-            else
-            {
-                // Gibt es schon, Inhalt verarbeiten.
-                foreach (
-                    var childNode in sourceNode.ChildNodes.Cast<XmlNode>().Where(n => n.NodeType == XmlNodeType.Element)
-                    )
-                {
-                    doProcessNode(childNode, destNode);
-                }
-            }
-        }
-
-        private static void copyNode(XmlNode sourceNode, XmlNode destParentNode)
-        {
-            // ReSharper disable once PossibleNullReferenceException
-            var newNode = destParentNode.OwnerDocumentIntelligent().ImportNode(sourceNode, true);
-            destParentNode.AppendChild(newNode);
-        }
-
-        private static XmlNode findNode(XmlNode sourceNode, XmlNode destDoc)
-        {
-            var xPath = findXPath(sourceNode);
-            var destNode = destDoc.SelectSingleNode(xPath);
-
-            return destNode;
-        }
-
-        // http://stackoverflow.com/a/241291/107625
-        private static string findXPath(XmlNode node)
-        {
-            var builder = new StringBuilder();
-            while (node != null)
-            {
-                switch (node.NodeType)
-                {
-                    case XmlNodeType.Attribute:
-                        builder.Insert(0, string.Format(@"/@{0}", node.Name));
-                        node = ((XmlAttribute)node).OwnerElement;
-                        break;
-                    case XmlNodeType.Element:
-                        var index = findElementIndex((XmlElement)node);
-                        builder.Insert(0, string.Format(@"/{0}[{1}]", node.Name, index));
-                        node = node.ParentNode;
-                        break;
-                    case XmlNodeType.Document:
-                        return builder.ToString();
-                    default:
-                        throw new ArgumentException("Only elements and attributes are supported");
-                }
-            }
-            throw new ArgumentException("Node was not in a document");
-        }
-
-        private static int findElementIndex(XmlNode element)
-        {
-            var parentNode = element.ParentNode;
-            if (parentNode is XmlDocument)
-            {
-                return 1;
-            }
-
-            var parent = (XmlElement)parentNode;
-            var index = 1;
-
-            if (parent != null)
-            {
-                foreach (XmlNode candidate in parent.ChildNodes)
-                {
-                    if (candidate is XmlElement && candidate.Name == element.Name)
-                    {
-                        if (candidate == element)
-                        {
-                            return index;
-                        }
-                        index++;
-                    }
-                }
-            }
-            throw new ArgumentException("Couldn't find element within parent");
-        }
-    }
-
-    internal static class XmlExtensions
-    {
-        public static XmlDocument OwnerDocumentIntelligent(this XmlNode node)
-        {
-            if (node == null) return null;
-            else
-            {
-                var document = node as XmlDocument;
-                return document ?? node.OwnerDocument;
             }
         }
     }
