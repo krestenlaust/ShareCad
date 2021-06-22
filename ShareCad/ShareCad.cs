@@ -25,7 +25,7 @@ namespace ShareCad
         /// <summary>
         /// The least amount of time passing, from the worksheet is changed to the server is notified.
         /// </summary>
-        private const double Update_DebounceTimeout = 500;
+        private const double Update_DebounceTimeout = 200;
 
         private static EngineeringDocument engineeringDocument;
         /// <summary>

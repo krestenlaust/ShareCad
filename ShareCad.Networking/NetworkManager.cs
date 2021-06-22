@@ -35,7 +35,7 @@ namespace ShareCad.Networking
     public class NetworkManager
     {
         public const short DefaultPort = 4040;
-        public const int NetworkUpdateInterval = 500;
+        public const int NetworkUpdateInterval = 100;
 
         private readonly NetworkFunction networkRole;
         private Thread networkThread;
