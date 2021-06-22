@@ -129,10 +129,9 @@ namespace ShareCad.Networking
             }
         }
 
-        private void UpdateCursorAll(byte collaboratorID, Point position, byte ignoreID=byte.MaxValue)
+        private void UpdateDocumentAll(XmlDocument newDocument, byte ignoreID=byte.MaxValue)
         {
-            CursorUpdateServer packet = new CursorUpdateServer(collaboratorID, position);
-
+            DocumentUpdate packet = new DocumentUpdate(newDocument);
             byte[] serializedPacket = packet.Serialize();
 
             foreach (var item in clients)
@@ -152,9 +151,10 @@ namespace ShareCad.Networking
             }
         }
 
-        private void UpdateDocumentAll(XmlDocument newDocument, byte ignoreID=byte.MaxValue)
+        private void UpdateCursorAll(byte collaboratorID, Point position, byte ignoreID = byte.MaxValue)
         {
-            DocumentUpdate packet = new DocumentUpdate(newDocument);
+            CursorUpdateServer packet = new CursorUpdateServer(collaboratorID, position);
+
             byte[] serializedPacket = packet.Serialize();
 
             foreach (var item in clients)

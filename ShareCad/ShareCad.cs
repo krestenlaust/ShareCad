@@ -1,9 +1,11 @@
 ﻿using HarmonyLib;
 using Ptc.Controls;
 using Ptc.Controls.Core;
+using Ptc.Controls.Worksheet;
 using ShareCad.Logging;
 using Spirit;
 using System;
+using System.ComponentModel;
 using System.Linq;
 using System.Net;
 using System.Reflection;
@@ -97,11 +99,6 @@ namespace ShareCad
             initializedDocument = true;
         }
 
-        /*
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(WpfUtils), "ExecuteOnLayoutUpdated")]
-        public static void Postfix_WpfUtils(ref UIElement element, ref Action action){}*/
-
         private void Sharecad_Push()
         {
             logger.Log("Pushing start");
@@ -180,15 +177,25 @@ namespace ShareCad
             engineeringDocument.Dispatcher.Invoke(() =>
             {
                 engineeringDocument.DocumentTabIcon = DownloadIcon;
-                logger.Log("Your worksheet has been updated");
-
                 ignoreFirstNetworkPush = true;
+                
+                IWorksheetViewModel viewModel = engineeringDocument._worksheet.GetViewModel();
+
+                var worksheetItems = viewModel.WorksheetItems;
+                if (worksheetItems.Count > 0)
+                {
+                    viewModel.SelectItems(viewModel.WorksheetItems);
+                    viewModel.HandleBackspace();
+                }
+
                 ManipulateWorksheet.DeserializeAndApplySection(engineeringDocument, doc.OuterXml);
                 engineeringDocument.DocumentTabIcon = "";
+
+                logger.Log("Your worksheet has been updated");
             });
         }
 
-        private static void Worksheet_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private static void Worksheet_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             logger.Log($"PropertyChange invoked - {e.PropertyName}");
 
@@ -257,14 +264,6 @@ namespace ShareCad
                     #endregion
                     break;
                 case "CurrentElement":
-                    /*try
-                    {
-                        engineeringDocument._worksheet.GetViewModel().DeleteActiveItem();
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(ex);
-                    }*/
                     break;
                 case "WorksheetPageLayoutMode":
                     // changed from draft to page
@@ -278,5 +277,11 @@ namespace ShareCad
                     break;
             }
         }
+
+        /*
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(WpfUtils), "ExecuteOnLayoutUpdated")]
+        public static void Postfix_WpfUtils(ref UIElement element, ref Action action){}*/
+
     }
 }
