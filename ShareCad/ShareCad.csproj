@@ -230,6 +230,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ShareCad.Logging\ShareCad.Logging.csproj">
+      <Project>{6D792E28-01A9-401B-B57B-5347BF9A3E34}</Project>
+      <Name>ShareCad.Logging</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ShareCad.Networking\ShareCad.Networking.csproj">
       <Project>{60072fee-7d38-4312-9b31-a016610cf8df}</Project>
       <Name>ShareCad.Networking</Name>

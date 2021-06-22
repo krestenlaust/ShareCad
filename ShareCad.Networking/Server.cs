@@ -1,4 +1,5 @@
-﻿using ShareCad.Networking.Packets;
+﻿using ShareCad.Logging;
+using ShareCad.Networking.Packets;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,6 +19,7 @@ namespace ShareCad.Networking
         private readonly List<Collaborator> clients;
         private XmlDocument currentDocument;
         private byte availableCollaboratorID;
+        private readonly Logger logger = new Logger("Server", false);
 
         /// <summary>
         /// 
@@ -38,11 +40,11 @@ namespace ShareCad.Networking
                 listener.Start();
                 listener.BeginAcceptTcpClient(new AsyncCallback(ClientConnected), null);
 
-                Console.WriteLine("Bound listener: " + listener.LocalEndpoint);
+                logger.Log("Bound listener: " + listener.LocalEndpoint);
             }
-            catch (SocketException)
+            catch (SocketException ex)
             {
-                Console.Error.WriteLine("Can't establish server");
+                logger.LogError(ex);
                 throw;
             }
         }
@@ -179,7 +181,7 @@ namespace ShareCad.Networking
 
             clients.Add(new Collaborator(availableCollaboratorID++, newClient));
 
-            Console.WriteLine("A collaborator connected on " + newClient.Client.RemoteEndPoint);
+            logger.Log("A collaborator connected on " + newClient.Client.RemoteEndPoint);
 
             // send latest document state.
             DocumentUpdate packet = new DocumentUpdate(currentDocument);

@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using Ptc.Controls;
 using Ptc.Controls.Core;
+using ShareCad.Logging;
 using Spirit;
 using System;
 using System.Linq;
@@ -24,7 +25,7 @@ namespace ShareCad
         /// <summary>
         /// The least amount of time passing, from the worksheet is changed to the server is notified.
         /// </summary>
-        private const double Update_DebounceTimeout = 100;
+        private const double Update_DebounceTimeout = 500;
 
         private static EngineeringDocument engineeringDocument;
         /// <summary>
@@ -40,6 +41,7 @@ namespace ShareCad
         private static Networking.NetworkManager networkManager;
         private static Timer networkPushDebounce = new Timer();
         private static bool ignoreFirstNetworkPush = true;
+        private static Logger logger = new Logger("", true);
 
         /// <summary>
         /// Initialisére harmony og andre funktionaliteter af sharecad.
@@ -61,7 +63,7 @@ namespace ShareCad
             controllerWindow.OnActivateShareFunctionality += SharecadControl_OnActivateShareFunctionality;
             controllerWindow.FormClosing += (object _, System.Windows.Forms.FormClosingEventArgs e) => Environment.Exit(0);
 
-            Console.WriteLine("LOADED!");
+            logger.Log("LOADED!");
         }
 
         /// <summary>
@@ -75,14 +77,14 @@ namespace ShareCad
             if (initializedDocument)
                 return;
 
-            Console.WriteLine("Retrieving document instance.");
+            logger.Log("Retrieving document instance.");
             engineeringDocument = (EngineeringDocument)__result;
 
             engineeringDocument.Worksheet.PropertyChanged += Worksheet_PropertyChanged;
 
             engineeringDocument.DocumentTabIcon = @"C:\Users\kress\source\repos\ShareCad\ShareCad\Resources\upload_icon.png";
-            Console.WriteLine("DocumentTabIcon: " + engineeringDocument.DocumentTabIcon);
-            Console.WriteLine("CustomizedClosePrompt: " + engineeringDocument.CustomizedClosePrompt);
+            logger.Log("DocumentTabIcon: " + engineeringDocument.DocumentTabIcon);
+            logger.Log("CustomizedClosePrompt: " + engineeringDocument.CustomizedClosePrompt);
 
             // vis vinduet til at styre delingsfunktionaliteten.
             controllerWindow.Show();
@@ -102,7 +104,7 @@ namespace ShareCad
 
         private void Sharecad_Push()
         {
-            Console.WriteLine("Pushing start");
+            logger.Log("Pushing start");
             var worksheetData = engineeringDocument.Worksheet.GetWorksheetData();
 
             if (worksheetData is null)
@@ -135,7 +137,7 @@ namespace ShareCad
 
             /// TODO: transmit data.
             networkManager.SendDocument(xml);
-            Console.WriteLine("Pushing end");
+            logger.Log("Pushing end");
             engineeringDocument.DocumentTabIcon = "";
         }
 
@@ -152,7 +154,7 @@ namespace ShareCad
                 networkManager.Start(IPAddress.Any);
             }
 
-            networkManager.Client.OnWorksheetUpdate += UpdateWorksheet;
+            networkManager.OnWorksheetUpdate += UpdateWorksheet;
 
             networkPushDebounce.Elapsed += (object source, ElapsedEventArgs e) =>
             {
@@ -160,7 +162,7 @@ namespace ShareCad
 
                 if (ignoreFirstNetworkPush)
                 {
-                    Console.WriteLine("Ignored this push");
+                    logger.Log("Push ignored");
                     ignoreFirstNetworkPush = false;
                     engineeringDocument.DocumentTabIcon = "";
                     return;
@@ -178,7 +180,7 @@ namespace ShareCad
             engineeringDocument.Dispatcher.Invoke(() =>
             {
                 engineeringDocument.DocumentTabIcon = DownloadIcon;
-                Console.WriteLine("Your worksheet has been updated");
+                logger.Log("Your worksheet has been updated");
 
                 ignoreFirstNetworkPush = true;
                 ManipulateWorksheet.DeserializeAndApplySection(engineeringDocument, doc.OuterXml);
@@ -188,9 +190,7 @@ namespace ShareCad
 
         private static void Worksheet_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            Console.ForegroundColor = ConsoleColor.White;
-            Console.WriteLine($"=== {DateTime.Now:HH:mm:ss} - PropertyChange invoked - {e.PropertyName} ===");
-            Console.ForegroundColor = ConsoleColor.Gray;
+            logger.Log($"PropertyChange invoked - {e.PropertyName}");
 
             //WorksheetControl control = (WorksheetControl)sender;
             //var worksheetData = control.GetWorksheetData();
@@ -257,14 +257,14 @@ namespace ShareCad
                     #endregion
                     break;
                 case "CurrentElement":
-                    try
+                    /*try
                     {
                         engineeringDocument._worksheet.GetViewModel().DeleteActiveItem();
                     }
                     catch (Exception ex)
                     {
                         Console.WriteLine(ex);
-                    }
+                    }*/
                     break;
                 case "WorksheetPageLayoutMode":
                     // changed from draft to page
