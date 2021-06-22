@@ -257,6 +257,14 @@ namespace ShareCad
                     #endregion
                     break;
                 case "CurrentElement":
+                    try
+                    {
+                        engineeringDocument._worksheet.GetViewModel().DeleteActiveItem();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex);
+                    }
                     break;
                 case "WorksheetPageLayoutMode":
                     // changed from draft to page

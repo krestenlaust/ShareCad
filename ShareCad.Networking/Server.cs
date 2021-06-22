@@ -162,10 +162,10 @@ namespace ShareCad.Networking
                     continue;
                 }
 
-                //if (item.ID == ignoreID)
-                //{
-                //    continue;
-                //}
+                if (item.ID == ignoreID)
+                {
+                    continue;
+                }
 
                 NetworkStream stream = item.TcpClient.GetStream();
                 stream.Write(serializedPacket, 0, serializedPacket.Length);
