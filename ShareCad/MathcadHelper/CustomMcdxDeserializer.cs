@@ -1,8 +1,4 @@
-﻿using Ptc.Controls.Core.Serialization;
-using Ptc.PersistentData;
-using Ptc.Serialization;
-using Ptc.Xml;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Packaging;
@@ -11,6 +7,10 @@ using System.Security.Permissions;
 using System.Windows;
 using System.Windows.Documents;
 using System.Xml;
+using Ptc.Controls.Core.Serialization;
+using Ptc.PersistentData;
+using Ptc.Serialization;
+using Ptc.Xml;
 
 [module: UnverifiableCode]
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]

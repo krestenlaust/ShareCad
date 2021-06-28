@@ -1,13 +1,11 @@
-﻿using ShareCad.Logging;
-using ShareCad.Networking.Packets;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Windows;
 using System.Xml;
+using ShareCad.Logging;
+using ShareCad.Networking.Packets;
 
 namespace ShareCad.Networking
 {
@@ -40,7 +38,7 @@ namespace ShareCad.Networking
                 listener.Start();
                 listener.BeginAcceptTcpClient(new AsyncCallback(ClientConnected), null);
 
-                logger.Log("Bound listener: " + listener.LocalEndpoint);
+                logger.Log($"Bound listener on {listener.LocalEndpoint}");
             }
             catch (SocketException ex)
             {
@@ -66,7 +64,7 @@ namespace ShareCad.Networking
                 NetworkStream stream = currentCollaborator.TcpClient.GetStream();
 
                 Dictionary<PacketType, Packet> packets = new Dictionary<PacketType, Packet>();
-                
+
                 while (stream.DataAvailable)
                 {
                     Packet packet = null;
@@ -105,6 +103,8 @@ namespace ShareCad.Networking
                     switch (packet)
                     {
                         case DocumentUpdate documentUpdate:
+                            currentCollaborator.Document = documentUpdate.XmlDocument;
+                            
                             UpdateDocumentAll(documentUpdate.XmlDocument, currentCollaborator.ID);
                             documentSent = true;
                             currentDocument = documentUpdate.XmlDocument;
@@ -121,6 +121,8 @@ namespace ShareCad.Networking
                             break;
                         case CursorUpdateClient cursorUpdate:
                             currentCollaborator.CursorLocation = cursorUpdate.Position;
+
+                            UpdateCursorAll(currentCollaborator.ID, cursorUpdate.Position);
                             break;
                         default:
                             break;
@@ -151,7 +153,7 @@ namespace ShareCad.Networking
             }
         }
 
-        private void UpdateCursorAll(byte collaboratorID, Point position, byte ignoreID = byte.MaxValue)
+        private void UpdateCursorAll(byte collaboratorID, Point position)
         {
             CursorUpdateServer packet = new CursorUpdateServer(collaboratorID, position);
 
@@ -164,10 +166,10 @@ namespace ShareCad.Networking
                     continue;
                 }
 
-                if (item.ID == ignoreID)
-                {
-                    continue;
-                }
+                //if (item.ID == collaboratorID)
+                //{
+                    //continue;
+                //}
 
                 NetworkStream stream = item.TcpClient.GetStream();
                 stream.Write(serializedPacket, 0, serializedPacket.Length);
@@ -181,7 +183,7 @@ namespace ShareCad.Networking
 
             clients.Add(new Collaborator(availableCollaboratorID++, newClient));
 
-            logger.Log("A collaborator connected on " + newClient.Client.RemoteEndPoint);
+            logger.Log($"A collaborator connected on {newClient.Client.RemoteEndPoint}");
 
             // send latest document state.
             DocumentUpdate packet = new DocumentUpdate(currentDocument);

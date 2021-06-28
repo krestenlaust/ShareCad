@@ -1,18 +1,16 @@
-﻿using Ptc;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Windows;
+using Ptc;
 using Ptc.Calculation.Core;
 using Ptc.Controls.Core;
 using Ptc.Controls.Core.Serialization;
 using Ptc.Controls.ExcelComponent;
 using Ptc.Controls.Include;
-using Ptc.Controls.Whiteboard;
 using Ptc.Controls.Worksheet;
 using Ptc.PersistentData;
 using Ptc.Serialization;
-using Ptc.Undo;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Windows;
 
 namespace ShareCad
 {

@@ -1,15 +1,13 @@
-﻿using ShareCad.Logging;
-using ShareCad.Networking.Packets;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 using System.Windows;
 using System.Xml;
+using ShareCad.Logging;
+using ShareCad.Networking.Packets;
 
 namespace ShareCad.Networking
 {
@@ -150,7 +148,7 @@ namespace ShareCad.Networking
 
         private void TransmitPacket(Packet packet)
         {
-            if (hostClient?.Connected != true)
+            if (hostClient is null || !hostClient.Connected)
             {
                 return;
             }
@@ -175,7 +173,7 @@ namespace ShareCad.Networking
                 {
                     hostClient.EndConnect(ar);
                     OnConnectFinished?.Invoke(ConnectStatus.Established);
-                    logger.Log("Connected to host: " + hostClient.Client.RemoteEndPoint);
+                    logger.Log($"Connected to host on {hostClient.Client.RemoteEndPoint}");
                 }
                 catch (SocketException ex)
                 {

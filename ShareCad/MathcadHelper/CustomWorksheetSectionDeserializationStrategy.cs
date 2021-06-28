@@ -1,13 +1,13 @@
-﻿using Ptc.Controls.Core;
-using Ptc.PersistentData;
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.Security;
 using System.Security.Permissions;
 using System.Windows;
-using Ptc.Serialization;
-using System.Collections.Generic;
+using Ptc.Controls.Core;
 using Ptc.Controls.Core.Serialization;
 using Ptc.Controls.Include;
+using Ptc.PersistentData;
+using Ptc.Serialization;
 
 [module: UnverifiableCode]
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]

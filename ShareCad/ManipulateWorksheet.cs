@@ -1,23 +1,13 @@
-﻿using Ptc;
-using Ptc.Controls;
-using Ptc.Controls.Core;
-using Ptc.Controls.ExcelComponent;
-using Ptc.Controls.Include;
-using Ptc.Controls.Whiteboard;
-using Ptc.Controls.Worksheet;
-using Ptc.PersistentData;
-using Ptc.PersistentDataObjects;
-using Ptc.Serialization;
-using Ptc.Undo;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.IO.Packaging;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Security;
 using System.Security.Permissions;
 using System.Windows;
 using System.Xml;
+using Ptc.Controls;
+using Ptc.Controls.Worksheet;
+using Ptc.PersistentData;
+using Ptc.PersistentDataObjects;
+using Ptc.Serialization;
 
 [module: UnverifiableCode]
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
@@ -25,22 +15,6 @@ namespace ShareCad
 {
     public static class ManipulateWorksheet
     {
-        private static Package _package;
-        private static Package TempPackage
-        {
-            get
-            {
-                if (_package is null)
-                {
-                    // Generate temporary package.
-                    string fileName = Path.GetTempPath() + Guid.NewGuid().ToString();
-                    _package = Package.Open(fileName, FileMode.CreateNew, FileAccess.ReadWrite);
-                }
-
-                return _package;
-            }
-        }
-
         public static void DeserializeAndApplySection(EngineeringDocument engineeringDocument, string xml)
         {
             var currentWorksheetData = engineeringDocument.Worksheet.GetWorksheetData();

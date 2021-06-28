@@ -1,19 +1,18 @@
-﻿using HarmonyLib;
+﻿using System;
+using System.ComponentModel;
+using System.Net;
+using System.Reflection;
+using System.Security;
+using System.Security.Permissions;
+using System.Timers;
+using System.Windows;
+using System.Xml;
+using HarmonyLib;
 using Ptc.Controls;
 using Ptc.Controls.Core;
 using Ptc.Controls.Worksheet;
 using ShareCad.Logging;
 using Spirit;
-using System;
-using System.ComponentModel;
-using System.Linq;
-using System.Net;
-using System.Reflection;
-using System.Security;
-using System.Security.Permissions;
-using System.Text;
-using System.Timers;
-using System.Xml;
 
 [module: UnverifiableCode]
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
@@ -22,13 +21,12 @@ namespace ShareCad
     [HarmonyPatch]
     public class ShareCad
     {
-        private const string UploadIcon = "";//@"C:\Users\kress\source\repos\ShareCad\ShareCad\Resources\upload_icon.png";
-        private const string DownloadIcon = "";//@"C:\Users\kress\source\repos\ShareCad\ShareCad\Resources\download_icon.png";
         /// <summary>
         /// The least amount of time passing, from the worksheet is changed to the server is notified.
         /// </summary>
         private const double Update_DebounceTimeout = 200;
 
+        public static ShareCad Instance;
         private static EngineeringDocument engineeringDocument;
         /// <summary>
         /// Sand, når modulet er initializeret.
@@ -53,7 +51,7 @@ namespace ShareCad
             if (initializedModule)
                 return;
 
-            initializedModule = true;
+            Instance = this;
 
             var harmony = new Harmony("ShareCad");
             harmony.PatchAll(Assembly.GetExecutingAssembly());
@@ -66,6 +64,7 @@ namespace ShareCad
             controllerWindow.FormClosing += (object _, System.Windows.Forms.FormClosingEventArgs e) => Environment.Exit(0);
 
             logger.Log("LOADED!");
+            initializedModule = true;
         }
 
         /// <summary>
@@ -84,9 +83,18 @@ namespace ShareCad
 
             engineeringDocument.Worksheet.PropertyChanged += Worksheet_PropertyChanged;
 
-            engineeringDocument.DocumentTabIcon = @"C:\Users\kress\source\repos\ShareCad\ShareCad\Resources\upload_icon.png";
-            logger.Log("DocumentTabIcon: " + engineeringDocument.DocumentTabIcon);
-            logger.Log("CustomizedClosePrompt: " + engineeringDocument.CustomizedClosePrompt);
+            // Update remote cursor position.
+            engineeringDocument.MouseDown += (object sender, System.Windows.Input.MouseButtonEventArgs e) => Remote.UpdateCursorPosition();
+            engineeringDocument.KeyUp += delegate(object sender, System.Windows.Input.KeyEventArgs e)
+            {
+                if (e.Key == System.Windows.Input.Key.NumLock)
+                {
+                    logger.Log("Hello");
+                    Instance.Sharecad_Push();
+                }
+
+                Remote.UpdateCursorPosition();
+            };
 
             // vis vinduet til at styre delingsfunktionaliteten.
             controllerWindow.Show();
@@ -106,7 +114,6 @@ namespace ShareCad
 
             if (worksheetData is null)
             {
-                engineeringDocument.DocumentTabIcon = "";
                 return;
             }
 
@@ -135,7 +142,6 @@ namespace ShareCad
             /// TODO: transmit data.
             networkManager.SendDocument(xml);
             logger.Log("Pushing end");
-            engineeringDocument.DocumentTabIcon = "";
         }
 
         private void SharecadControl_OnActivateShareFunctionality(Networking.NetworkFunction networkRole, IPAddress guestTargetIPAddress)
@@ -161,7 +167,6 @@ namespace ShareCad
                 {
                     logger.Log("Push ignored");
                     ignoreFirstNetworkPush = false;
-                    engineeringDocument.DocumentTabIcon = "";
                     return;
                 }
 
@@ -176,20 +181,26 @@ namespace ShareCad
         {
             engineeringDocument.Dispatcher.Invoke(() =>
             {
-                engineeringDocument.DocumentTabIcon = DownloadIcon;
                 ignoreFirstNetworkPush = true;
                 
                 IWorksheetViewModel viewModel = engineeringDocument._worksheet.GetViewModel();
 
+                // den region man skriver i lige nu.
+                var currentItem = viewModel.ActiveItem;
+
                 var worksheetItems = viewModel.WorksheetItems;
                 if (worksheetItems.Count > 0)
                 {
+                    Point previousPosition = viewModel.InsertionPoint;
+
                     viewModel.SelectItems(viewModel.WorksheetItems);
+                    viewModel.ToggleItemSelection(currentItem, true);
                     viewModel.HandleBackspace();
+
+                    viewModel.InsertionPoint = previousPosition;
                 }
 
                 ManipulateWorksheet.DeserializeAndApplySection(engineeringDocument, doc.OuterXml);
-                engineeringDocument.DocumentTabIcon = "";
 
                 logger.Log("Your worksheet has been updated");
             });
@@ -271,7 +282,6 @@ namespace ShareCad
                 case "IsCalculating":
                     networkPushDebounce.Interval = Update_DebounceTimeout;
                     networkPushDebounce.Start();
-                    engineeringDocument.DocumentTabIcon = UploadIcon;
                     break;
                 default:
                     break;
@@ -283,5 +293,28 @@ namespace ShareCad
         [HarmonyPatch(typeof(WpfUtils), "ExecuteOnLayoutUpdated")]
         public static void Postfix_WpfUtils(ref UIElement element, ref Action action){}*/
 
+        private static class Remote
+        {
+            private static Point previousPoint;
+
+            public static void UpdateCursorPosition()
+            {
+                if (previousPoint == engineeringDocument.InsertionPoint)
+                {
+                    return;
+                }
+
+                networkManager.SendCursorPosition(engineeringDocument.InsertionPoint);
+                previousPoint = engineeringDocument.InsertionPoint;
+            }
+        }
+
+        private static class Local
+        {
+            public static void UpdateCursorPosition(byte ID, Point position)
+            {
+                /// ???
+            }
+        }
     }
 }

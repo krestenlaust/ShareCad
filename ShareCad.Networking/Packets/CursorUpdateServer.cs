@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 
 namespace ShareCad.Networking.Packets
@@ -18,24 +14,37 @@ namespace ShareCad.Networking.Packets
         {
             PacketType = PacketType.CursorUpdate;
 
-            throw new NotImplementedException();
+            CollaboratorID = collaboratorID;
+            Position = position;
         }
 
         public CursorUpdateServer(Stream stream)
         {
             PacketType = PacketType.CursorUpdate;
 
-            throw new NotImplementedException();
+            CollaboratorID = (byte)stream.ReadByte();
+
+            serializedData = new byte[sizeof(double) * 2];
+            stream.Read(serializedData, 0, sizeof(double) * 2);
         }
 
         public override void Parse()
         {
-            throw new NotImplementedException();
+            double x = BitConverter.ToDouble(serializedData, 0);
+            double y = BitConverter.ToDouble(serializedData, sizeof(double));
+
+            Position = new Point(x, y);
         }
 
         public override byte[] Serialize()
         {
-            throw new NotImplementedException();
+            byte[] data = new byte[sizeof(double) * 2 + 2];
+            data[0] = (byte)PacketType;
+            data[1] = CollaboratorID;
+            BitConverter.GetBytes(Position.X).CopyTo(data, 2);
+            BitConverter.GetBytes(Position.Y).CopyTo(data, 2 + sizeof(double));
+
+            return data;
         }
     }
 }

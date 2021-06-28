@@ -1,12 +1,4 @@
-﻿using Ptc;
-using Ptc.Controls.Core.Serialization;
-using Ptc.IO;
-using Ptc.PersistentData;
-using Ptc.PersistentDataObjects;
-using Ptc.Serialization;
-using Ptc.Wpf;
-using Ptc.Xml;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Packaging;
@@ -15,10 +7,18 @@ using System.Windows.Documents;
 using System.Windows.Media.Imaging;
 using System.Xml;
 using System.Xml.Schema;
+using Ptc;
+using Ptc.Controls.Core.Serialization;
+using Ptc.IO;
+using Ptc.PersistentData;
+using Ptc.PersistentDataObjects;
+using Ptc.Serialization;
+using Ptc.Wpf;
+using Ptc.Xml;
 
 namespace ShareCad
 {
-	public class CustomMcdxSerializer : IS11NProvider, IBaseS11NProvider
+    public class CustomMcdxSerializer : IS11NProvider, IBaseS11NProvider
 	{
 		public CustomMcdxSerializer(ISerializationStrategy serializationStrategy, ISerializationHelper helper, IRegionCollectionSerializer regionCollectionSerializer, Action<XmlSchemaException> onWriteValidationFailed, bool useOverrides)
 		{
