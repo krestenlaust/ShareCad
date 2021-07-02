@@ -173,11 +173,11 @@ namespace ShareCad.Networking
                 {
                     hostClient.EndConnect(ar);
                     OnConnectFinished?.Invoke(ConnectStatus.Established);
-                    logger.Log($"Connected to host on {hostClient.Client.RemoteEndPoint}");
+                    logger.Print($"Connected to host on {hostClient.Client.RemoteEndPoint}");
                 }
                 catch (SocketException ex)
                 {
-                    logger.LogError(ex);
+                    logger.PrintError(ex);
                     OnConnectFinished?.Invoke(ConnectStatus.Failed);
                 }
             }), null);
@@ -188,7 +188,7 @@ namespace ShareCad.Networking
             hostClient?.Close();
             hostClient = null;
 
-            logger.Log("Disconnected");
+            logger.Print("Disconnected");
         }
 
         private void UpdateClient()

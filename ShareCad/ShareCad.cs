@@ -1,11 +1,16 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Security;
 using System.Security.Permissions;
 using System.Timers;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
+using System.Windows.Shapes;
 using System.Xml;
 using HarmonyLib;
 using Ptc.Controls;
@@ -28,6 +33,7 @@ namespace ShareCad
 
         public static ShareCad Instance;
         private static EngineeringDocument engineeringDocument;
+        private static IWorksheetViewModel documentViewModel;
         /// <summary>
         /// Sand, når modulet er initializeret.
         /// </summary>
@@ -41,7 +47,7 @@ namespace ShareCad
         private static Networking.NetworkManager networkManager;
         private static Timer networkPushDebounce = new Timer();
         private static bool ignoreFirstNetworkPush = true;
-        private static Logger logger = new Logger("", true);
+        private static Logger log = new Logger("", true);
 
         /// <summary>
         /// Initialisére harmony og andre funktionaliteter af sharecad.
@@ -63,7 +69,7 @@ namespace ShareCad
             controllerWindow.OnActivateShareFunctionality += SharecadControl_OnActivateShareFunctionality;
             controllerWindow.FormClosing += (object _, System.Windows.Forms.FormClosingEventArgs e) => Environment.Exit(0);
 
-            logger.Log("LOADED!");
+            log.Print("LOADED!");
             initializedModule = true;
         }
 
@@ -78,8 +84,12 @@ namespace ShareCad
             if (initializedDocument)
                 return;
 
-            logger.Log("Retrieving document instance.");
             engineeringDocument = (EngineeringDocument)__result;
+            documentViewModel = engineeringDocument._worksheet.GetViewModel();
+
+            log.Print("Document instances retrieved");
+
+            //InstantiateCrosshair();
 
             engineeringDocument.Worksheet.PropertyChanged += Worksheet_PropertyChanged;
 
@@ -87,14 +97,22 @@ namespace ShareCad
             engineeringDocument.MouseDown += (object sender, System.Windows.Input.MouseButtonEventArgs e) => Remote.UpdateCursorPosition();
             engineeringDocument.KeyUp += delegate(object sender, System.Windows.Input.KeyEventArgs e)
             {
+                /*
+                if (e.Key == System.Windows.Input.Key.A)
+                {
+                    engineeringDocument.Dispatcher.Invoke(() => Local.UpdateCursorPosition(1, new Point(50, 2)));
+                }*/
+
                 if (e.Key == System.Windows.Input.Key.NumLock)
                 {
-                    logger.Log("Hello");
+                    log.Print("Manual push");
                     Instance.Sharecad_Push();
                 }
 
                 Remote.UpdateCursorPosition();
             };
+
+            log.Print("Event listeners assigned");
 
             // vis vinduet til at styre delingsfunktionaliteten.
             controllerWindow.Show();
@@ -107,9 +125,45 @@ namespace ShareCad
             initializedDocument = true;
         }
 
+        private static bool TryInstantiateCrosshair(out Crosshair newCrosshair)
+        {
+            WorksheetControl controlContent1 = (WorksheetControl)engineeringDocument.Content;
+            Grid controlContent2 = (Grid)controlContent1.Content;
+
+            Grid controlContent3 = (Grid)controlContent2.Children[1];
+
+            ItemsControl visiblePagesControl = (ItemsControl)controlContent3.Children[0];
+
+            if (visiblePagesControl.IsLoaded)
+            {
+                WorksheetPageControl control4 = (WorksheetPageControl)visiblePagesControl.Items[0];
+
+                Grid gridThing = (Grid)VisualTreeHelper.GetChild(control4, 0);
+
+                Grid finalGrid = (Grid)gridThing.Children[1];
+
+                WorksheetPageBody worksheetPageBody = (WorksheetPageBody)((ContentPresenter)finalGrid.Children[0]).Content;
+                PageBodyCanvas pageBodyCanvas = (PageBodyCanvas)worksheetPageBody.Content;
+
+                Crosshair crosshair = new Crosshair();
+                Line line1 = (Line)crosshair.Children[0];
+                Line line2 = (Line)crosshair.Children[1];
+                line1.Stroke = Brushes.Green;
+                line2.Stroke = Brushes.Green;
+
+                pageBodyCanvas.Children.Add(crosshair);
+
+                newCrosshair = crosshair;
+
+                return true;
+            }
+
+            newCrosshair = null;
+            return false;
+        }
+
         private void Sharecad_Push()
         {
-            logger.Log("Pushing start");
             var worksheetData = engineeringDocument.Worksheet.GetWorksheetData();
 
             if (worksheetData is null)
@@ -139,9 +193,9 @@ namespace ShareCad
             //    Console.WriteLine(sb);
             //}
 
-            /// TODO: transmit data.
+            // TODO: transmit data.
             networkManager.SendDocument(xml);
-            logger.Log("Pushing end");
+            log.Print("Pushed document");
         }
 
         private void SharecadControl_OnActivateShareFunctionality(Networking.NetworkFunction networkRole, IPAddress guestTargetIPAddress)
@@ -158,22 +212,20 @@ namespace ShareCad
             }
 
             networkManager.OnWorksheetUpdate += UpdateWorksheet;
+            networkManager.OnCollaboratorCursorUpdate += Local.UpdateCursorPosition;
 
-            networkPushDebounce.Elapsed += (object source, ElapsedEventArgs e) =>
+            networkPushDebounce.Elapsed += delegate (object source, ElapsedEventArgs e)
             {
                 networkPushDebounce.Stop();
 
                 if (ignoreFirstNetworkPush)
                 {
-                    logger.Log("Push ignored");
+                    log.Print("Push ignored");
                     ignoreFirstNetworkPush = false;
                     return;
                 }
 
-                engineeringDocument.Dispatcher.Invoke(() =>
-                {
-                    Sharecad_Push();
-                });
+                engineeringDocument.Dispatcher.Invoke(() => Sharecad_Push());
             };
         }
 
@@ -182,33 +234,41 @@ namespace ShareCad
             engineeringDocument.Dispatcher.Invoke(() =>
             {
                 ignoreFirstNetworkPush = true;
-                
-                IWorksheetViewModel viewModel = engineeringDocument._worksheet.GetViewModel();
 
                 // den region man skriver i lige nu.
-                var currentItem = viewModel.ActiveItem;
+                var currentItem = documentViewModel.ActiveItem;
 
-                var worksheetItems = viewModel.WorksheetItems;
+                var worksheetItems = documentViewModel.WorksheetItems;
                 if (worksheetItems.Count > 0)
                 {
-                    Point previousPosition = viewModel.InsertionPoint;
+                    Point previousPosition = documentViewModel.InsertionPoint;
 
-                    viewModel.SelectItems(viewModel.WorksheetItems);
-                    viewModel.ToggleItemSelection(currentItem, true);
-                    viewModel.HandleBackspace();
+                    // Select every item on whiteboard.
+                    documentViewModel.HandleSelectAll();
+                    //documentViewModel.SelectItems(documentViewModel.WorksheetItems);
 
-                    viewModel.InsertionPoint = previousPosition;
+                    // Deselect current item if any.
+                    if (!(currentItem is null))
+                    {
+                        documentViewModel.ToggleItemSelection(currentItem, true);
+                    }
+
+                    // Delete all selected items.
+                    documentViewModel.HandleBackspace();
+
+                    // Change insertion point back to previous position.
+                    //documentViewModel.InsertionPoint = previousPosition;
                 }
 
                 ManipulateWorksheet.DeserializeAndApplySection(engineeringDocument, doc.OuterXml);
 
-                logger.Log("Your worksheet has been updated");
+                log.Print("Your worksheet has been updated");
             });
         }
 
         private static void Worksheet_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            logger.Log($"PropertyChange invoked - {e.PropertyName}");
+            log.Print($"PropertyChange invoked - {e.PropertyName}");
 
             //WorksheetControl control = (WorksheetControl)sender;
             //var worksheetData = control.GetWorksheetData();
@@ -293,12 +353,23 @@ namespace ShareCad
         [HarmonyPatch(typeof(WpfUtils), "ExecuteOnLayoutUpdated")]
         public static void Postfix_WpfUtils(ref UIElement element, ref Action action){}*/
 
+        /// <summary>
+        /// Sends local changes remotely.
+        /// </summary>
         private static class Remote
         {
             private static Point previousPoint;
 
             public static void UpdateCursorPosition()
             {
+                if (networkManager is null)
+                {
+                    // testing
+                    Local.UpdateCursorPosition(1, new Point(engineeringDocument.InsertionPoint.X / 2, engineeringDocument.InsertionPoint.Y / 2));
+
+                    return;
+                }
+
                 if (previousPoint == engineeringDocument.InsertionPoint)
                 {
                     return;
@@ -309,11 +380,40 @@ namespace ShareCad
             }
         }
 
+        /// <summary>
+        /// Reflects remote changes locally.
+        /// </summary>
         private static class Local
         {
+            private static Dictionary<byte, Crosshair> crosshairs = new Dictionary<byte, Crosshair>();
+
             public static void UpdateCursorPosition(byte ID, Point position)
             {
-                /// ???
+                // TODO: Implement visual for other cursors.
+
+                engineeringDocument.Dispatcher.Invoke(() =>
+                {
+                    Crosshair crosshair;
+                    if (!crosshairs.TryGetValue(ID, out crosshair))
+                    {
+                        // instantiate crosshair.
+                        if (!TryInstantiateCrosshair(out crosshair))
+                        {
+                            Console.WriteLine("Crosshair instantiation failed!!!");
+                            return;
+                        }
+
+                        crosshairs[ID] = crosshair;
+                    }
+
+                    MoveCrosshair(crosshair, position);
+                });
+            }
+
+            private static void MoveCrosshair(Crosshair crosshair, Point newPoint)
+            {
+                Canvas.SetLeft(crosshair, newPoint.X);
+                Canvas.SetTop(crosshair, newPoint.Y);
             }
         }
     }

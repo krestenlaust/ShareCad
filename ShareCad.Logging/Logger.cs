@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Text;
 
 namespace ShareCad.Logging
@@ -17,15 +18,27 @@ namespace ShareCad.Logging
             this.printTime = printTime;
         }
 
-        public void LogError(object value) => LogError(value.ToString());
+        public void PrintError(object value) => PrintError(value.ToString());
 
-        public void LogError(string value) => Log(value.ToString(), ConsoleColor.Red);
+        public void PrintError(string value) => Print(value.ToString(), ConsoleColor.Red);
 
-        public void Log(object value) => Log(value.ToString());
+        public void PrintCollection(IEnumerable values)
+        {
+            Print("- Collection start");
 
-        public void Log(string value) => Log(value, ConsoleColor.White);
+            foreach (var item in values)
+            {
+                Print(item);
+            }
 
-        private void Log(string value, ConsoleColor color)
+            Print("- Collection end");
+        }
+
+        public void Print(object value) => Print(value.ToString());
+
+        public void Print(string value) => Print(value, ConsoleColor.White);
+
+        private void Print(string value, ConsoleColor color)
         {
             StringBuilder sb = new StringBuilder(value.Length + 1);
 

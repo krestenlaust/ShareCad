@@ -38,11 +38,11 @@ namespace ShareCad.Networking
                 listener.Start();
                 listener.BeginAcceptTcpClient(new AsyncCallback(ClientConnected), null);
 
-                logger.Log($"Bound listener on {listener.LocalEndpoint}");
+                logger.Print($"Bound listener on {listener.LocalEndpoint}");
             }
             catch (SocketException ex)
             {
-                logger.LogError(ex);
+                logger.PrintError(ex);
                 throw;
             }
         }
@@ -166,10 +166,10 @@ namespace ShareCad.Networking
                     continue;
                 }
 
-                //if (item.ID == collaboratorID)
-                //{
-                    //continue;
-                //}
+                if (item.ID == collaboratorID)
+                {
+                    continue;
+                }
 
                 NetworkStream stream = item.TcpClient.GetStream();
                 stream.Write(serializedPacket, 0, serializedPacket.Length);
@@ -183,7 +183,7 @@ namespace ShareCad.Networking
 
             clients.Add(new Collaborator(availableCollaboratorID++, newClient));
 
-            logger.Log($"A collaborator connected on {newClient.Client.RemoteEndPoint}");
+            logger.Print($"A collaborator connected on {newClient.Client.RemoteEndPoint}");
 
             // send latest document state.
             DocumentUpdate packet = new DocumentUpdate(currentDocument);
