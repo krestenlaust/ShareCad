@@ -365,7 +365,7 @@ namespace ShareCad
                 if (networkManager is null)
                 {
                     // testing
-                    Local.UpdateCursorPosition(1, new Point(engineeringDocument.InsertionPoint.X / 2, engineeringDocument.InsertionPoint.Y / 2));
+                    Local.UpdateCursorPosition(1, new Point(engineeringDocument.InsertionPoint.X / 2, engineeringDocument.InsertionPoint.Y));
 
                     return;
                 }
@@ -385,7 +385,7 @@ namespace ShareCad
         /// </summary>
         private static class Local
         {
-            private static Dictionary<byte, Crosshair> crosshairs = new Dictionary<byte, Crosshair>();
+            private static Dictionary<byte, CollaboratorCrosshair> collaboratorCrosshairs = new Dictionary<byte, CollaboratorCrosshair>();
 
             public static void UpdateCursorPosition(byte ID, Point position)
             {
@@ -393,27 +393,145 @@ namespace ShareCad
 
                 engineeringDocument.Dispatcher.Invoke(() =>
                 {
-                    Crosshair crosshair;
-                    if (!crosshairs.TryGetValue(ID, out crosshair))
+                    CollaboratorCrosshair crosshair;
+                    if (!collaboratorCrosshairs.TryGetValue(ID, out crosshair))
                     {
-                        // instantiate crosshair.
-                        if (!TryInstantiateCrosshair(out crosshair))
-                        {
-                            Console.WriteLine("Crosshair instantiation failed!!!");
-                            return;
-                        }
-
-                        crosshairs[ID] = crosshair;
+                        crosshair = new CollaboratorCrosshair();
+                        collaboratorCrosshairs[ID] = crosshair;
                     }
 
-                    MoveCrosshair(crosshair, position);
+                    crosshair.MoveCrosshair(position);
+
+                    //Crosshair crosshair;
+                    //if (!crosshairs.TryGetValue(ID, out crosshair))
+                    //{
+                    //    // instantiate crosshair.
+                    //    if (!TryInstantiateCrosshair(out crosshair))
+                    //    {
+                    //        Console.WriteLine("Crosshair instantiation failed!!!");
+                    //        return;
+                    //    }
+
+                    //    crosshairs[ID] = crosshair;
+                    //}
+
+                    //MoveCrosshairLegacy(crosshair, position);
                 });
             }
 
-            private static void MoveCrosshair(Crosshair crosshair, Point newPoint)
+            private static void MoveCrosshairLegacy(Crosshair crosshair, Point newPosition)
             {
-                Canvas.SetLeft(crosshair, newPoint.X);
-                Canvas.SetTop(crosshair, newPoint.Y);
+                Canvas.SetLeft(crosshair, newPosition.X);
+                Canvas.SetTop(crosshair, newPosition.Y);
+            }
+
+            /// <summary>
+            /// Manages collaborator crosshairs. One crosshair per page. Currently only supports non-draft mode.
+            /// </summary>
+            private class CollaboratorCrosshair
+            {
+                // Det er vel teknisk set 50, men tror 49 er det rigtige for det den bruges til.
+                private const int PageGridHeight = 49;
+
+                /// <summary>
+                /// Crosshair instances by their page index.
+                /// </summary>
+                private Dictionary<int, Crosshair> crosshairInstances = new Dictionary<int, Crosshair>();
+                private SolidColorBrush crosshairColor = Brushes.Green;
+                private int previousPage;
+
+                public CollaboratorCrosshair()
+                {
+                }
+
+                public CollaboratorCrosshair(SolidColorBrush crosshairColor)
+                {
+                    this.crosshairColor = crosshairColor;
+                }
+
+                public void MoveCrosshair(Point newPosition)
+                {
+                    int newPageIndex = GetPageByPosition(newPosition);
+
+                    // if a crosshair has been instantiated there. It doesn't matter if the page is the same as the new page,
+                    // it is shown latter anyway.
+                    if (crosshairInstances.TryGetValue(previousPage, out Crosshair previousCrosshair))
+                    {
+                        previousCrosshair.Visibility = Visibility.Collapsed;
+                    }
+
+                    Crosshair targetCrosshair;
+                    if (!crosshairInstances.TryGetValue(newPageIndex, out targetCrosshair))
+                    {
+                        // Crosshair doesn't exist, instantiate a new one.
+                        targetCrosshair = InstantiateCrosshairOnPage(newPageIndex);
+
+                        // returns if the page doesn't exist.
+                        if (targetCrosshair is null)
+                        {
+                            return;
+                        }
+                    }
+
+                    // move target crosshair and make sure it is displayed properly.
+                    double yOffset = documentViewModel.GridLocationToWorksheetLocation(new Point(0, PageGridHeight)).Y * newPageIndex;
+                    Canvas.SetLeft(targetCrosshair, newPosition.X);
+                    Canvas.SetTop(targetCrosshair, newPosition.Y - yOffset);
+
+                    if (targetCrosshair.IsLoaded)
+                    {
+                        targetCrosshair.Visibility = Visibility.Visible;
+                    }
+                    else
+                    {
+                        targetCrosshair.Loaded += delegate { targetCrosshair.Visibility = Visibility.Visible; };
+                    }
+
+                    previousPage = newPageIndex;
+                }
+
+                // TODO: ikke lavet endnu, lige nu laver den bare et crosshair på den første side.
+                private Crosshair InstantiateCrosshairOnPage(int pageIndex)
+                {
+                    IEnumerable<IWorksheetPage> pages = documentViewModel.PageManager.Pages;
+
+                    // page doesn't exist.
+                    if (pages.Count() <= pageIndex)
+                    {
+                        return null;
+                    }
+
+                    WorksheetPageBody worksheetPageBody = (WorksheetPageBody)pages.ElementAt(pageIndex).PageBody;
+
+                    PageBodyCanvas pageBodyCanvas = (PageBodyCanvas)worksheetPageBody.Content;
+
+                    Crosshair crosshair = new Crosshair();
+                    Line line1 = (Line)crosshair.Children[0];
+                    Line line2 = (Line)crosshair.Children[1];
+                    line1.Stroke = crosshairColor;
+                    line2.Stroke = crosshairColor;
+
+                    crosshairInstances[pageIndex] = crosshair;
+                    pageBodyCanvas.Children.Add(crosshair);
+
+                    return crosshair;
+                }
+
+
+                /// <summary>
+                /// Gets the page containing the crosshair.
+                /// </summary>
+                /// <returns></returns>
+                private static int GetPageByGridPosition(Point gridPosition)
+                {
+                    return (int)(gridPosition.Y / PageGridHeight);
+                }
+
+                private static int GetPageByPosition(Point worksheetPosition)
+                {
+                    Point gridPosition = documentViewModel.WorksheetLocationToGridLocation(worksheetPosition);
+                    return GetPageByGridPosition(gridPosition);
+                }
             }
         }
     }

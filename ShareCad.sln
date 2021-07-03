@@ -20,6 +20,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Deinternalizer", "Deinterna
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShareCad.Logging", "ShareCad.Logging\ShareCad.Logging.csproj", "{6D792E28-01A9-401B-B57B-5347BF9A3E34}"
 EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "ShareCad Prime", "ShareCad Prime\ShareCad Prime.vdproj", "{D2F6CA5F-2461-46B2-89FD-B91D80D08293}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug Mathcad|Any CPU = Debug Mathcad|Any CPU
@@ -63,6 +65,9 @@ Global
 		{6D792E28-01A9-401B-B57B-5347BF9A3E34}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6D792E28-01A9-401B-B57B-5347BF9A3E34}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6D792E28-01A9-401B-B57B-5347BF9A3E34}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D2F6CA5F-2461-46B2-89FD-B91D80D08293}.Debug Mathcad|Any CPU.ActiveCfg = Debug
+		{D2F6CA5F-2461-46B2-89FD-B91D80D08293}.Debug|Any CPU.ActiveCfg = Debug
+		{D2F6CA5F-2461-46B2-89FD-B91D80D08293}.Release|Any CPU.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
