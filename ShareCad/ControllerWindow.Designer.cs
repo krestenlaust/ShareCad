@@ -32,10 +32,10 @@ namespace ShareCad
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.radioButtonHost = new System.Windows.Forms.RadioButton();
-            this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
-            this.buttonActivateNetworking = new System.Windows.Forms.Button();
             this.textBoxGuestTargetIP = new System.Windows.Forms.TextBox();
             this.radioButtonGuest = new System.Windows.Forms.RadioButton();
+            this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
+            this.buttonActivateNetworking = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.tableLayoutPanel1.SuspendLayout();
             this.tableLayoutPanel2.SuspendLayout();
@@ -84,6 +84,27 @@ namespace ShareCad
             this.radioButtonHost.UseVisualStyleBackColor = false;
             this.radioButtonHost.CheckedChanged += new System.EventHandler(this.RadioButton_CheckedChanged);
             // 
+            // textBoxGuestTargetIP
+            // 
+            this.textBoxGuestTargetIP.Location = new System.Drawing.Point(3, 181);
+            this.textBoxGuestTargetIP.Name = "textBoxGuestTargetIP";
+            this.textBoxGuestTargetIP.Size = new System.Drawing.Size(222, 22);
+            this.textBoxGuestTargetIP.TabIndex = 6;
+            this.textBoxGuestTargetIP.Text = "127.0.0.1";
+            // 
+            // radioButtonGuest
+            // 
+            this.radioButtonGuest.AutoSize = true;
+            this.radioButtonGuest.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.radioButtonGuest.Location = new System.Drawing.Point(3, 92);
+            this.radioButtonGuest.Name = "radioButtonGuest";
+            this.radioButtonGuest.Size = new System.Drawing.Size(456, 83);
+            this.radioButtonGuest.TabIndex = 1;
+            this.radioButtonGuest.TabStop = true;
+            this.radioButtonGuest.Text = "Gæst";
+            this.radioButtonGuest.UseVisualStyleBackColor = false;
+            this.radioButtonGuest.CheckedChanged += new System.EventHandler(this.RadioButton_CheckedChanged);
+            // 
             // tableLayoutPanel2
             // 
             this.tableLayoutPanel2.ColumnCount = 1;
@@ -110,27 +131,6 @@ namespace ShareCad
             this.buttonActivateNetworking.Text = "Aktivér deling";
             this.buttonActivateNetworking.UseVisualStyleBackColor = true;
             this.buttonActivateNetworking.Click += new System.EventHandler(this.buttonActivateNetworking_Click);
-            // 
-            // textBoxGuestTargetIP
-            // 
-            this.textBoxGuestTargetIP.Location = new System.Drawing.Point(3, 181);
-            this.textBoxGuestTargetIP.Name = "textBoxGuestTargetIP";
-            this.textBoxGuestTargetIP.Size = new System.Drawing.Size(222, 22);
-            this.textBoxGuestTargetIP.TabIndex = 6;
-            this.textBoxGuestTargetIP.Text = "127.0.0.1";
-            // 
-            // radioButtonGuest
-            // 
-            this.radioButtonGuest.AutoSize = true;
-            this.radioButtonGuest.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.radioButtonGuest.Location = new System.Drawing.Point(3, 92);
-            this.radioButtonGuest.Name = "radioButtonGuest";
-            this.radioButtonGuest.Size = new System.Drawing.Size(456, 83);
-            this.radioButtonGuest.TabIndex = 1;
-            this.radioButtonGuest.TabStop = true;
-            this.radioButtonGuest.Text = "Gæst";
-            this.radioButtonGuest.UseVisualStyleBackColor = false;
-            this.radioButtonGuest.CheckedChanged += new System.EventHandler(this.RadioButton_CheckedChanged);
             // 
             // ControllerWindow
             // 

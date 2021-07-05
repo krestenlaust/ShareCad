@@ -63,7 +63,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Collaborator.cs" />
-    <Compile Include="NetworkManager.cs" />
+    <Compile Include="NetworkClient.cs" />
+    <Compile Include="NetworkManagerThing.cs" />
     <Compile Include="Packet.cs" />
     <Compile Include="Packets\CursorUpdateClient.cs" />
     <Compile Include="Packets\CursorUpdateServer.cs" />

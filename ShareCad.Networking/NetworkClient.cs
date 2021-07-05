@@ -19,7 +19,7 @@ namespace ShareCad.Networking
     }
 
     /// <summary>
-    /// The responsibilities of a <c>NetworkManager</c>-instance.
+    /// The responsibilities of a <c>NetworkClient</c>-instance.
     /// </summary>
     public enum NetworkFunction
     {
@@ -30,23 +30,18 @@ namespace ShareCad.Networking
     /// <summary>
     /// Manages networking in a different thread.
     /// </summary>
-    public class NetworkManager
+    public class NetworkClient
     {
-        public const short DefaultPort = 4040;
-        public const int NetworkUpdateInterval = 100;
-
-        private readonly NetworkFunction networkRole;
-        private Thread networkThread;
-        private bool networkRunning = true;
-        private Server server;
         private readonly Queue<Packet> packetsToSend = new Queue<Packet>();
-        private readonly Logger logger = new Logger("Client/Manager", false);
-        private TcpClient hostClient = null;
+        private readonly Logger log;
+        public readonly TcpClient HostClient;
+        public readonly IPEndPoint Endpoint;
 
-        public NetworkManager(NetworkFunction networkRole)
+        public NetworkClient(IPEndPoint endpoint)
         {
-            hostClient = new TcpClient();
-            this.networkRole = networkRole;
+            log = new Logger("Client/Manager", false);
+            HostClient = new TcpClient();
+            this.Endpoint = endpoint;
         }
 
         public enum ConnectStatus
@@ -66,7 +61,8 @@ namespace ShareCad.Networking
         public event Action<byte, Point> OnCollaboratorCursorUpdate;
 
 
-        /// <summary>
+        /*
+        ///<summary>
         /// Initializes server at endpoint if Host, and a client connecting to the endpoint.
         /// </summary>
         /// <param name="serverEndpoint"></param>
@@ -80,104 +76,28 @@ namespace ShareCad.Networking
         /// <exception cref="SocketException"></exception>
         public void Start(IPEndPoint endPoint)
         {
-            if (networkRole == NetworkFunction.Host)
-            {
-                server = new Server(endPoint);
 
-                // connect locally.
-                ConnectClient(new IPEndPoint(IPAddress.Loopback, endPoint.Port));
-            }
-            else
-            {
-                // connect remotely.
-                ConnectClient(endPoint);
-            }
-
-            networkThread = new Thread(NetworkLoop);
-            networkThread.Start();
-        }
+        }*/
 
         /// <summary>
-        /// Stops any client/server running.
-        /// </summary>
-        public void Stop()
-        {
-            networkRunning = false;
-        }
-
-        private void NetworkLoop()
-        {
-            Stopwatch stopwatch = new Stopwatch();
-            while (networkRunning)
-            {
-                stopwatch.Restart();
-
-                // Send queued packets.
-                while (packetsToSend.Count > 0)
-                {
-                    TransmitPacket(packetsToSend.Dequeue());
-                }
-
-                // Handle server logic.
-                if (server is Server)
-                {
-                    server.Update();
-                }
-
-                // Handle client logic.
-                if (hostClient.Connected)
-                {
-                    UpdateClient();
-                }
-
-                while (stopwatch.ElapsedMilliseconds < NetworkUpdateInterval)
-                    Thread.Sleep(0);
-            }
-
-            server.Dispose();
-        }
-        
-        public void SendDocument(XmlDocument document) => EnqueuePacket(new DocumentUpdate(document));
-
-        public void SendCursorPosition(Point position) => EnqueuePacket(new CursorUpdateClient(position));
-
-        private void EnqueuePacket(Packet packet)
-        {
-            packetsToSend.Enqueue(packet);
-        }
-
-        private void TransmitPacket(Packet packet)
-        {
-            if (hostClient is null || !hostClient.Connected)
-            {
-                return;
-            }
-
-            NetworkStream stream = hostClient.GetStream();
-
-            byte[] data = packet.Serialize();
-            stream.Write(data, 0, data.Length);
-        }
-
-        /// <summary>
-        /// Connects to a host by specified address and port.
+        /// Connects to the host configured in constructor.
         /// </summary>
         /// <param name="endPoint"></param>
         /// <exception cref="SocketException">Connection failed.</exception>
-        private void ConnectClient(IPEndPoint endPoint)
+        public void Connect()
         {
             /// TODO: implement error-handling.
-            hostClient.BeginConnect(endPoint.Address, endPoint.Port, new AsyncCallback(delegate (IAsyncResult ar)
+            HostClient.BeginConnect(Endpoint.Address, Endpoint.Port, new AsyncCallback(delegate (IAsyncResult ar)
             {
                 try
                 {
-                    hostClient.EndConnect(ar);
+                    HostClient.EndConnect(ar);
                     OnConnectFinished?.Invoke(ConnectStatus.Established);
-                    logger.Print($"Connected to host on {hostClient.Client.RemoteEndPoint}");
+                    log.Print($"Connected to host on {HostClient.Client.RemoteEndPoint}");
                 }
                 catch (SocketException ex)
                 {
-                    logger.PrintError(ex);
+                    log.PrintError(ex);
                     OnConnectFinished?.Invoke(ConnectStatus.Failed);
                 }
             }), null);
@@ -185,15 +105,22 @@ namespace ShareCad.Networking
 
         public void DisconnectClient()
         {
-            hostClient?.Close();
-            hostClient = null;
+            HostClient?.Close();
 
-            logger.Print("Disconnected");
+            log.Print("Disconnected");
         }
 
-        private void UpdateClient()
+        public void SendAllQueuedPackets()
         {
-            NetworkStream stream = hostClient.GetStream();
+            while (packetsToSend.Count > 0)
+            {
+                TransmitPacket(packetsToSend.Dequeue());
+            }
+        }
+
+        public void Update()
+        {
+            NetworkStream stream = HostClient.GetStream();
 
             if (!stream.DataAvailable)
             {
@@ -222,6 +149,28 @@ namespace ShareCad.Networking
                 default:
                     break;
             }
+        }
+
+        public void SendDocument(XmlDocument document) => EnqueuePacket(new DocumentUpdate(document));
+
+        public void SendCursorPosition(Point position) => EnqueuePacket(new CursorUpdateClient(position));
+
+        private void EnqueuePacket(Packet packet)
+        {
+            packetsToSend.Enqueue(packet);
+        }
+
+        private void TransmitPacket(Packet packet)
+        {
+            if (HostClient is null || !HostClient.Connected)
+            {
+                return;
+            }
+
+            NetworkStream stream = HostClient.GetStream();
+
+            byte[] data = packet.Serialize();
+            stream.Write(data, 0, data.Length);
         }
     }
 }

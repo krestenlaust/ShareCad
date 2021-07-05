@@ -15,8 +15,8 @@ namespace ShareCad.Networking.Tests
         [TestMethod]
         public void InitializeNetwork()
         {
-            Networking.NetworkManager networkManager = new Networking.NetworkManager(NetworkFunction.Host);
-            networkManager.Start(System.Net.IPAddress.Loopback);
+            //Networking.NetworkClient networkManager = new Networking.NetworkClient(NetworkFunction.Host);
+            //networkManager.Start(System.Net.IPAddress.Loopback);
         }
     }
 }
