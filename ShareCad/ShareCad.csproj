@@ -45,7 +45,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug Mathcad|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
-    <OutputPath>..\..\..\..\..\..\Program Files\PTC\Mathcad Prime 4.0\</OutputPath>
+    <OutputPath>..\..\..\..\..\..\Program Files\PTC\Mathcad Prime 4.0.1\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <DebugType>full</DebugType>
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -64,8 +64,8 @@
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="0Harmony">
-      <HintPath>..\Libs\0Harmony.dll</HintPath>
+    <Reference Include="0Harmony, Version=2.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Lib.Harmony.2.1.0\lib\net45\0Harmony.dll</HintPath>
     </Reference>
     <Reference Include="DevComponents.WpfRibbon, Version=4.0.0.1, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -77,113 +77,24 @@
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
-    <Reference Include="Ptc.Calculation.Core">
-      <HintPath>..\Libs\Ptc.Calculation.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="Ptc.Calculation.Core.resources">
-      <HintPath>..\Libs\Ptc.Calculation.Core.resources.dll</HintPath>
-    </Reference>
-    <Reference Include="Ptc.Controls, Version=1.0.6361.11811, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Deinternalizer\bin\Debug\Ptc.Controls.dll</HintPath>
-    </Reference>
-    <Reference Include="Ptc.Controls.CollapsibleArea, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\Program Files\PTC\Mathcad Prime 4.0\Ptc.Controls.CollapsibleArea.dll</HintPath>
-    </Reference>
-    <Reference Include="Ptc.Controls.CollapsibleArea.resources, Version=1.0.0.0, Culture=en-US, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\Program Files\PTC\Mathcad Prime 4.0\Ptc.Controls.CollapsibleArea.resources.dll</HintPath>
-    </Reference>
     <Reference Include="Ptc.Controls.Core, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\Program Files\PTC\Mathcad Prime 4.0\Ptc.Controls.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="Ptc.Controls.Core.resources, Version=1.0.0.0, Culture=en-US, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\Program Files\PTC\Mathcad Prime 4.0\Ptc.Controls.Core.resources.dll</HintPath>
-    </Reference>
-    <Reference Include="Ptc.Controls.EquationControl, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\Program Files\PTC\Mathcad Prime 4.0\Ptc.Controls.EquationControl.dll</HintPath>
-    </Reference>
-    <Reference Include="Ptc.Controls.EquationControl.resources, Version=1.0.0.0, Culture=en-US, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\Program Files\PTC\Mathcad Prime 4.0\Ptc.Controls.EquationControl.resources.dll</HintPath>
-    </Reference>
-    <Reference Include="Ptc.Controls.ExcelComponent, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\Program Files\PTC\Mathcad Prime 4.0\Ptc.Controls.ExcelComponent.dll</HintPath>
-    </Reference>
-    <Reference Include="Ptc.Controls.Include, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\Program Files\PTC\Mathcad Prime 4.0\Ptc.Controls.Include.dll</HintPath>
-    </Reference>
-    <Reference Include="Ptc.Controls.Include.resources, Version=1.0.0.0, Culture=en-US, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\Program Files\PTC\Mathcad Prime 4.0\Ptc.Controls.Include.resources.dll</HintPath>
-    </Reference>
-    <Reference Include="Ptc.Controls.Plots, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\Program Files\PTC\Mathcad Prime 4.0\Ptc.Controls.Plots.dll</HintPath>
-    </Reference>
-    <Reference Include="Ptc.Controls.Plots.resources, Version=1.0.0.0, Culture=en-US, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\Program Files\PTC\Mathcad Prime 4.0\Ptc.Controls.Plots.resources.dll</HintPath>
-    </Reference>
-    <Reference Include="Ptc.Controls.resources, Version=1.0.6361.11811, Culture=en-US, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\Program Files\PTC\Mathcad Prime 4.0\Ptc.Controls.resources.dll</HintPath>
-    </Reference>
-    <Reference Include="Ptc.Controls.SolveBlock, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\Program Files\PTC\Mathcad Prime 4.0\Ptc.Controls.SolveBlock.dll</HintPath>
-    </Reference>
-    <Reference Include="Ptc.Controls.SolveBlock.resources, Version=1.0.0.0, Culture=en-US, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\Program Files\PTC\Mathcad Prime 4.0\Ptc.Controls.SolveBlock.resources.dll</HintPath>
-    </Reference>
-    <Reference Include="Ptc.Controls.Text, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\Program Files\PTC\Mathcad Prime 4.0\Ptc.Controls.Text.dll</HintPath>
-    </Reference>
-    <Reference Include="Ptc.Controls.Text.resources, Version=1.0.0.0, Culture=en-US, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\Program Files\PTC\Mathcad Prime 4.0\Ptc.Controls.Text.resources.dll</HintPath>
     </Reference>
     <Reference Include="Ptc.Controls.Whiteboard, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\Program Files\PTC\Mathcad Prime 4.0\Ptc.Controls.Whiteboard.dll</HintPath>
     </Reference>
-    <Reference Include="Ptc.Controls.Whiteboard.resources, Version=1.0.0.0, Culture=en-US, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\Program Files\PTC\Mathcad Prime 4.0\Ptc.Controls.Whiteboard.resources.dll</HintPath>
-    </Reference>
     <Reference Include="Ptc.Controls.Worksheet, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Deinternalizer\bin\Debug\Ptc.Controls.Worksheet.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\Program Files\PTC\Mathcad Prime 4.0\Ptc.Controls.Worksheet.dll</HintPath>
     </Reference>
-    <Reference Include="Ptc.Controls.Worksheet.resources, Version=1.0.0.0, Culture=en-US, processorArchitecture=MSIL">
+    <Reference Include="Ptc.ControlsModified">
+      <HintPath>..\Ptc.ControlsModified.dll</HintPath>
+    </Reference>
+    <Reference Include="Ptc.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=c6e6b6be0a20486f, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\Program Files\PTC\Mathcad Prime 4.0\Ptc.Controls.Worksheet.resources.dll</HintPath>
-    </Reference>
-    <Reference Include="Ptc.Core">
-      <HintPath>..\Libs\Ptc.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="Ptc.EquationEditor">
-      <HintPath>..\Libs\Ptc.EquationEditor.dll</HintPath>
-    </Reference>
-    <Reference Include="Ptc.MathcadPrime.Automation">
-      <HintPath>..\Libs\Ptc.MathcadPrime.Automation.dll</HintPath>
-    </Reference>
-    <Reference Include="Ptc.Media3D">
-      <HintPath>..\Libs\Ptc.Media3D.dll</HintPath>
-    </Reference>
-    <Reference Include="Ptc.SpiritAutomation">
-      <HintPath>..\Libs\Ptc.SpiritAutomation.dll</HintPath>
-    </Reference>
-    <Reference Include="Ptc.TestFramework">
-      <HintPath>..\Libs\Ptc.TestFramework.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\Program Files\PTC\Mathcad Prime 4.0\Ptc.Core.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
@@ -199,26 +110,20 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="WindowsBase" />
-    <Reference Include="XmlDiffPatch, Version=1.0.8.28, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <HintPath>..\packages\XMLDiffPatch.1.0.8.28\lib\net\XmlDiffPatch.dll</HintPath>
-    </Reference>
-    <Reference Include="XmlDiffPatch.View, Version=1.0.1493.40755, Culture=neutral">
-      <HintPath>..\packages\XMLDiffPatch.1.0.8.28\lib\net\XmlDiffPatch.View.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ControllerWindow.cs">
+    <Compile Include="Old stuff\ControllerWindow.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="ControllerWindow.Designer.cs">
+    <Compile Include="Old stuff\ControllerWindow.Designer.cs">
       <DependentUpon>ControllerWindow.cs</DependentUpon>
     </Compile>
-    <Compile Include="ManipulateSingleRegionsOld.cs" />
+    <Compile Include="Old stuff\ManipulateSingleRegionsOld.cs" />
     <Compile Include="MathcadHelper\CustomMcdxDeserializer.cs" />
     <Compile Include="ManipulateWorksheet.cs" />
     <Compile Include="MathcadHelper\CustomMcdxSerializer.cs" />
     <Compile Include="MathcadHelper\CustomWorksheetSectionSerializationStrategy.cs" />
-    <Compile Include="ModuleInitializer.cs" />
+    <Compile Include="Old stuff\ModuleInitializer.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -227,6 +132,7 @@
     <Compile Include="ShareCad.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SharedDocument.cs" />
+    <Compile Include="ShareCadRibbonParts.cs" />
     <Compile Include="WinConsole.cs" />
     <Compile Include="MathcadHelper\WorksheetControlExtensions.cs" />
     <Compile Include="MathcadHelper\CustomWorksheetSectionDeserializationStrategy.cs" />
@@ -245,7 +151,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="ControllerWindow.resx">
+    <EmbeddedResource Include="Old stuff\ControllerWindow.resx">
       <DependentUpon>ControllerWindow.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">

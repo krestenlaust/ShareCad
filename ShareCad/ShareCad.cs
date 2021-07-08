@@ -33,6 +33,7 @@ namespace ShareCad
     {
         public static ShareCad Instance;
 
+        public static NetworkFunction? NewDocumentAction = null;
         /// <summary>
         /// Sand, når modulet er initializeret.
         /// </summary>
@@ -44,8 +45,7 @@ namespace ShareCad
         //private static ControllerWindow controllerWindow;
         private static List<SharedDocument> sharedDocuments = new List<SharedDocument>();
         private static NetworkManagerThing networkmanagerThing = new NetworkManagerThing();
-        private static Logger log = new Logger("", true);
-        private static NetworkFunction? NewDocumentAction = null;
+        public static Logger log = new Logger("", true);
 
         /// <summary>
         /// Initialisére harmony og andre funktionaliteter af sharecad.
@@ -67,109 +67,10 @@ namespace ShareCad
             //controllerWindow.OnActivateShareFunctionality += SharecadControl_OnActivateShareFunctionality;
             //controllerWindow.FormClosing += (object _, System.Windows.Forms.FormClosingEventArgs e) => Environment.Exit(0);
 
-            ExtendRibbonControl(GetRibbon());
+            ShareCadRibbonParts.ExtendRibbonControl(GetRibbon());
 
             log.Print("LOADED!");
             initializedModule = true;
-        }
-
-        private class LiveShare_GeneralRibbonBar : RibbonBar
-        {
-            public LiveShare_GeneralRibbonBar()
-            {
-                Height = 85;
-                Header = "General";
-
-                ButtonPanel panel = new ButtonPanel();
-                panel.MaxHeight = 85;
-                Items.Add(panel);
-
-                Image shareIcon = new Image();
-                shareIcon.MaxHeight = 32;
-                shareIcon.MaxWidth = 32;
-                shareIcon.Source = new BitmapImage(new Uri(System.IO.Path.GetFullPath(@"Images\share_icon.png"), UriKind.Absolute));
-                ButtonEx hostButton = new ButtonEx
-                {
-                    Header = "Share document",
-                    ImagePosition = eButtonImagePosition.Top,
-                    RenderSize = new Size(48, 68),
-                    Image = shareIcon,
-                    ImageSmall = shareIcon
-                };
-                hostButton.Click += delegate { NewDocumentAction = NetworkFunction.Host; log.Print(NewDocumentAction); };
-                panel.Children.Add(hostButton);
-
-                Image ipIcon = new Image();
-                ipIcon.MaxHeight = 32;
-                ipIcon.MaxWidth = 32;
-                ipIcon.Source = new BitmapImage(new Uri(System.IO.Path.GetFullPath(@"Images\ip_icon.png"), UriKind.Absolute));
-                ButtonEx guestButton = new ButtonEx
-                {
-                    Header = "Connect to ...",
-                    ImagePosition = eButtonImagePosition.Top,
-                    RenderSize = new Size(48, 68),
-                    Image = ipIcon,
-                    ImageSmall = ipIcon
-                };
-                guestButton.Click += delegate { NewDocumentAction = NetworkFunction.Guest; log.Print(NewDocumentAction); };
-                panel.Children.Add(guestButton);
-            }
-        }
-
-        private class LiveShare_CollaboratorManager : RibbonBar
-        {
-            public LiveShare_CollaboratorManager()
-            {
-                Height = 85;
-                Header = "Collaborators";
-
-                ButtonPanel panel = new ButtonPanel();
-                panel.MaxHeight = 85;
-                Items.Add(panel);
-
-                ButtonEx disconnectAllButton = new ButtonEx
-                {
-                    Header = "Disconnect all",
-                    ImagePosition = eButtonImagePosition.Top,
-                    RenderSize = new Size(48, 68),
-                    Image = null,
-                    ImageSmall = null
-                };
-                panel.Children.Add(disconnectAllButton);
-            }
-        }
-
-        private static void ExtendRibbonControl(Ribbon ribbon)
-        {
-            RibbonBarPanel ribbonBarPanel = new RibbonBarPanel();
-            ribbonBarPanel.Children.Add(new LiveShare_GeneralRibbonBar());
-            ribbonBarPanel.Children.Add(new LiveShare_CollaboratorManager());
-
-            RibbonTab ribbonTab = new RibbonTab
-            {
-                Header = "Live Share",
-                Content = ribbonBarPanel
-            };
-
-            ribbon.Items.Add(ribbonTab);
-
-            /*
-            // comic sans
-            foreach (var item in LogicalTreeHelper.GetChildren(ribbon).OfType<RibbonTab>())
-            {
-                item.FontFamily = new FontFamily("Comic Sans MS");
-                if (item.Header.ToString().Contains("Math"))
-                {
-                    item.Header = item.Header.ToString().Replace("Math", "Meth");
-                }
-            }*/
-        }
-
-        private Ribbon GetRibbon()
-        {
-            ContentControl rootElement = (ContentControl)Application.Current.MainWindow;
-            Panel panel = (Panel)rootElement.Content;
-            return (Ribbon)panel.Children[0];
         }
 
         /// <summary>
@@ -229,113 +130,12 @@ namespace ShareCad
             log.Print("Connection finished: " + obj);
         }
 
-        /*
-        private static bool TryInstantiateCrosshair(out Crosshair newCrosshair)
+        private Ribbon GetRibbon()
         {
-            WorksheetControl controlContent1 = (WorksheetControl)engineeringDocument.Content;
-            Grid controlContent2 = (Grid)controlContent1.Content;
-
-            Grid controlContent3 = (Grid)controlContent2.Children[1];
-
-            ItemsControl visiblePagesControl = (ItemsControl)controlContent3.Children[0];
-
-            if (visiblePagesControl.IsLoaded)
-            {
-                WorksheetPageControl control4 = (WorksheetPageControl)visiblePagesControl.Items[0];
-
-                Grid gridThing = (Grid)VisualTreeHelper.GetChild(control4, 0);
-
-                Grid finalGrid = (Grid)gridThing.Children[1];
-
-                WorksheetPageBody worksheetPageBody = (WorksheetPageBody)((ContentPresenter)finalGrid.Children[0]).Content;
-                PageBodyCanvas pageBodyCanvas = (PageBodyCanvas)worksheetPageBody.Content;
-
-                Crosshair crosshair = new Crosshair();
-                Line line1 = (Line)crosshair.Children[0];
-                Line line2 = (Line)crosshair.Children[1];
-                line1.Stroke = Brushes.Green;
-                line2.Stroke = Brushes.Green;
-
-                pageBodyCanvas.Children.Add(crosshair);
-
-                newCrosshair = crosshair;
-
-                return true;
-            }
-
-            newCrosshair = null;
-            return false;
+            ContentControl rootElement = (ContentControl)Application.Current.MainWindow;
+            Panel panel = (Panel)rootElement.Content;
+            return (Ribbon)panel.Children[0];
         }
-        */
-
-        /*
-        private void Sharecad_Push()
-        {
-            var worksheetData = engineeringDocument.Worksheet.GetWorksheetData();
-
-            if (worksheetData is null)
-            {
-                return;
-            }
-
-            var regionsToSerialize = worksheetData.WorksheetContent.RegionsToSerialize;
-
-            XmlDocument xml = ManipulateWorksheet.SerializeRegions(regionsToSerialize, engineeringDocument);
-            
-            //if (previousDocument is null)
-            //{
-            //    previousDocument = xml;
-            //}
-            //else
-            //{
-            //    XmlDiff xmldiff = new XmlDiff(XmlDiffOptions.IgnoreChildOrder |
-            //                        XmlDiffOptions.IgnoreNamespaces |
-            //                        XmlDiffOptions.IgnorePrefixes);
-
-            //    XmlDocument newXml = new XmlDocument();
-
-            //    StringBuilder sb = new StringBuilder();
-            //    xmldiff.Compare(previousDocument, xml, XmlWriter.Create(sb));
-
-            //    Console.WriteLine(sb);
-            //}
-
-            // TODO: transmit data.
-            networkManager.SendDocument(xml);
-            log.Print("Pushed document");
-        }*/
-
-        /*
-        private void SharecadControl_OnActivateShareFunctionality(NetworkFunction networkRole, IPAddress guestTargetIPAddress)
-        {
-            networkManager = new Networking.NetworkClient(networkRole);
-
-            if (networkRole == Networking.NetworkFunction.Guest)
-            {
-                networkManager.Start(guestTargetIPAddress);
-            }
-            else
-            {
-                networkManager.Start(IPAddress.Any);
-            }
-
-            networkManager.OnWorksheetUpdate += UpdateWorksheet;
-            networkManager.OnCollaboratorCursorUpdate += Local.UpdateCursorPosition;
-
-            networkPushDebounce.Elapsed += delegate (object source, ElapsedEventArgs e)
-            {
-                networkPushDebounce.Stop();
-
-                if (ignoreFirstNetworkPush)
-                {
-                    log.Print("Push ignored");
-                    ignoreFirstNetworkPush = false;
-                    return;
-                }
-
-                engineeringDocument.Dispatcher.Invoke(() => Sharecad_Push());
-            };
-        }*/
 
         /*
         private static void Worksheet_PropertyChanged(object sender, PropertyChangedEventArgs e)

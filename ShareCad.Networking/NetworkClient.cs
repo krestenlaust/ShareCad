@@ -36,6 +36,7 @@ namespace ShareCad.Networking
         private readonly Logger log;
         public readonly TcpClient HostClient;
         public readonly IPEndPoint Endpoint;
+        public bool isConnecting { get; private set; }
 
         public NetworkClient(IPEndPoint endpoint)
         {
@@ -86,7 +87,9 @@ namespace ShareCad.Networking
         /// <exception cref="SocketException">Connection failed.</exception>
         public void Connect()
         {
-            /// TODO: implement error-handling.
+            isConnecting = true;
+
+            // TODO: implement error-handling.
             HostClient.BeginConnect(Endpoint.Address, Endpoint.Port, new AsyncCallback(delegate (IAsyncResult ar)
             {
                 try
@@ -100,6 +103,8 @@ namespace ShareCad.Networking
                     log.PrintError(ex);
                     OnConnectFinished?.Invoke(ConnectStatus.Failed);
                 }
+
+                isConnecting = false;
             }), null);
         }
 

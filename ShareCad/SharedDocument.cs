@@ -26,6 +26,7 @@ namespace ShareCad
         private const double Update_DebounceTimeout = 200;
 
         private const string ConnectionIcon = @"Images\connect_icon.png";
+        private const string NoConnectionIcon = @"Images\noconnect_icon.png";
 
         public readonly EngineeringDocument Document;
         private readonly IWorksheetViewModel viewModel;
@@ -35,7 +36,21 @@ namespace ShareCad
         private readonly Timer networkPushDebounce = new Timer();
         private bool ignoreFirstNetworkPush = true;
 
-        /// <summary>
+        private bool isConnected
+        {
+            get
+            {
+                if (NetworkClient.HostClient.Connected != previousConnectedStatus)
+                {
+                    UpdateConnectionStatus(NetworkClient.HostClient.Connected);
+                }
+
+                return NetworkClient.HostClient.Connected;
+            }
+        }
+        private bool previousConnectedStatus;
+
+        /// <summary>          
         /// Creates a SharedDocument instance to keep track on sharing in this document.
         /// </summary>
         /// <param name="engineeringDocument"></param>
@@ -69,8 +84,23 @@ namespace ShareCad
             client.OnWorksheetUpdate += UpdateWorksheet;
             client.OnCollaboratorCursorUpdate += LocalUpdateCursorPosition;
 
-            Document.DocumentTabIcon = System.IO.Path.GetFullPath(ConnectionIcon);
             Document.DocumentName = client.Endpoint.ToString();
+
+            if (NetworkClient.isConnecting)
+            {
+                NetworkClient.OnConnectFinished += (_) => UpdateConnectionStatus(NetworkClient.HostClient.Connected);
+            }
+            else
+            {
+                UpdateConnectionStatus(NetworkClient.HostClient.Connected);
+            }
+
+            Document.DocumentTabIcon = System.IO.Path.GetFullPath(ConnectionIcon);
+        }
+
+        private void NetworkClient_OnConnectFinished(NetworkClient.ConnectStatus obj)
+        {
+            throw new System.NotImplementedException();
         }
 
         public void StopSharing()
@@ -81,8 +111,19 @@ namespace ShareCad
             Document.DocumentTabIcon = "";
         }
 
+        private void UpdateConnectionStatus(bool connected)
+        {
+            Document.DocumentTabIcon = System.IO.Path.GetFullPath(connected ? ConnectionIcon : NoConnectionIcon);
+        }
+
         private void PushDocument()
         {
+            if (!isConnected)
+            {
+                log.Print("Not connected");
+                return;
+            }
+
             var worksheetData = Document.Worksheet.GetWorksheetData();
 
             if (worksheetData is null)
@@ -193,29 +234,9 @@ namespace ShareCad
 
                 crosshair.MoveCrosshair(position);
 
-                //Crosshair crosshair;
-                //if (!crosshairs.TryGetValue(ID, out crosshair))
-                //{
-                //    // instantiate crosshair.
-                //    if (!TryInstantiateCrosshair(out crosshair))
-                //    {
-                //        Console.WriteLine("Crosshair instantiation failed!!!");
-                //        return;
-                //    }
 
-                //    crosshairs[ID] = crosshair;
-                //}
-
-                //MoveCrosshairLegacy(crosshair, position);
             });
         }
-
-        /*
-        private void MoveCrosshairLegacy(Crosshair crosshair, Point newPosition)
-        {
-            Canvas.SetLeft(crosshair, newPosition.X);
-            Canvas.SetTop(crosshair, newPosition.Y);
-        }*/
 
         /// <summary>
         /// Manages collaborator crosshairs. One crosshair per page. Currently only supports non-draft mode.
@@ -299,7 +320,7 @@ namespace ShareCad
                 WorksheetPageBody worksheetPageBody = (WorksheetPageBody)pages.ElementAt(pageIndex).PageBody;
 
                 PageBodyCanvas pageBodyCanvas = (PageBodyCanvas)worksheetPageBody.Content;
-
+                
                 Crosshair crosshair = new Crosshair();
                 Line line1 = (Line)crosshair.Children[0];
                 Line line2 = (Line)crosshair.Children[1];
