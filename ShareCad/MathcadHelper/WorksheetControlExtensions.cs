@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
+using HarmonyLib;
 using Ptc;
 using Ptc.Calculation.Core;
+using Ptc.Controls;
 using Ptc.Controls.Core;
 using Ptc.Controls.Core.Serialization;
 using Ptc.Controls.ExcelComponent;
@@ -17,6 +19,11 @@ namespace ShareCad
     public static class WorksheetControlExtensions
     {
         public static IWorksheetViewModel GetViewModel(this WorksheetControl control) => control.DataContext as IWorksheetViewModel;
+
+		public static IWorksheetViewModel GetViewModel(this EngineeringDocument engineeringDocument)
+        {
+			return ((WorksheetControl)AccessTools.Field(typeof(EngineeringDocument), "_worksheet").GetValue(engineeringDocument)).GetViewModel();
+        }
 
         public static Point GridLocationToWorksheetLocation(this IWorksheetViewModel viewModel, Point gridLocation, bool useContentGrid=true)
         {

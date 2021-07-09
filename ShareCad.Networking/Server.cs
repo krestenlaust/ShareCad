@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Windows;
@@ -68,6 +69,7 @@ namespace ShareCad.Networking
                 while (stream.DataAvailable)
                 {
                     Packet packet = null;
+
                     PacketType packetType = (PacketType)stream.ReadByte();
                     switch (packetType)
                     {
@@ -92,13 +94,26 @@ namespace ShareCad.Networking
                             break;
                     }
 
+                    if (packet is null)
+                    {
+                        continue;
+                    }
+
                     packets[packetType] = packet;
                 }
 
                 /// TODO: Sort packets to make documentrequest the last one.
                 foreach (Packet packet in packets.Values)
                 {
-                    packet.Parse();
+                    try
+                    {
+                        packet.Parse();
+                    }
+                    catch (Exception)
+                    {
+                        logger.PrintError("Tried parsing invalid packet");
+                        continue;
+                    }
 
                     switch (packet)
                     {

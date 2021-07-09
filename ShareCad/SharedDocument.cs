@@ -64,7 +64,7 @@ namespace ShareCad
             NetworkClient = client;
 
             Document = engineeringDocument;
-            viewModel = engineeringDocument._worksheet.GetViewModel();
+            viewModel = engineeringDocument.GetViewModel();
 
             Document.Worksheet.PropertyChanged += PropertyChanged;
             Document.KeyUp += MousePositionMightveChanged;

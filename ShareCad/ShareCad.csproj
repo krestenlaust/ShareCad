@@ -86,6 +86,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\Program Files\PTC\Mathcad Prime 4.0\Ptc.Calculation.Core.dll</HintPath>
     </Reference>
+    <Reference Include="Ptc.Controls, Version=1.0.6361.11811, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\Program Files\PTC\Mathcad Prime 4.0\Ptc.Controls.dll</HintPath>
+    </Reference>
     <Reference Include="Ptc.Controls.Core, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\Program Files\PTC\Mathcad Prime 4.0\Ptc.Controls.Core.dll</HintPath>
@@ -113,9 +117,6 @@
     <Reference Include="Ptc.Controls.Worksheet, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\Program Files\PTC\Mathcad Prime 4.0\Ptc.Controls.Worksheet.dll</HintPath>
-    </Reference>
-    <Reference Include="Ptc.ControlsModified">
-      <HintPath>..\Ptc.ControlsModified.dll</HintPath>
     </Reference>
     <Reference Include="Ptc.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=c6e6b6be0a20486f, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>

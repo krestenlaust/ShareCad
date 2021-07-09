@@ -144,7 +144,15 @@ namespace ShareCad.Networking
 
             foreach (var item in packets.Values)
             {
-                item.Parse();
+                try
+                {
+                    item.Parse();
+                }
+                catch (Exception)
+                {
+                    log.PrintError("Tried parsing invalid packet");
+                    continue;
+                }
 
                 switch (item)
                 {
