@@ -10,6 +10,7 @@ using System.Xml;
 using Ptc.Controls;
 using Ptc.Controls.Core;
 using Ptc.Controls.Worksheet;
+using Ptc.Wpf;
 using ShareCad.Networking;
 
 namespace ShareCad
@@ -25,9 +26,6 @@ namespace ShareCad
         /// </summary>
         private const double Update_DebounceTimeout = 200;
 
-        private const string ConnectionIcon = @"Images\connect_icon.png";
-        private const string NoConnectionIcon = @"Images\noconnect_icon.png";
-
         public readonly EngineeringDocument Document;
         private readonly IWorksheetViewModel viewModel;
 
@@ -36,6 +34,9 @@ namespace ShareCad
         private readonly Timer networkPushDebounce = new Timer();
         private bool ignoreFirstNetworkPush = true;
 
+        /// <summary>
+        /// Updates visual indicators of connection, and returns the connection status.
+        /// </summary>
         private bool isConnected
         {
             get
@@ -44,14 +45,16 @@ namespace ShareCad
                 {
                     UpdateConnectionStatus(NetworkClient.HostClient.Connected);
                 }
+                previousConnectedStatus = NetworkClient.HostClient.Connected;
 
-                return NetworkClient.HostClient.Connected;
+                return previousConnectedStatus;
             }
         }
         private bool previousConnectedStatus;
 
         /// <summary>          
-        /// Creates a SharedDocument instance to keep track on sharing in this document.
+        /// Hooks the EngineeringDocument to enable sharing functionality.
+        /// Can be initialized both before and after established connection.
         /// </summary>
         /// <param name="engineeringDocument"></param>
         public SharedDocument(EngineeringDocument engineeringDocument, NetworkClient client, Logging.Logger logger)
@@ -65,6 +68,10 @@ namespace ShareCad
 
             Document.Worksheet.PropertyChanged += PropertyChanged;
             Document.KeyUp += MousePositionMightveChanged;
+            Document.MouseMove += MousePositionMightveChanged;
+            
+            client.OnWorksheetUpdate += (doc) => Document.Dispatcher.Invoke(() => UpdateWorksheet(doc));
+            client.OnCollaboratorCursorUpdate += UpdateLocalCursorPosition;
 
             networkPushDebounce.Stop();
             networkPushDebounce.Elapsed += delegate (object source, ElapsedEventArgs e)
@@ -81,39 +88,43 @@ namespace ShareCad
                 engineeringDocument.Dispatcher.Invoke(() => PushDocument());
             };
 
-            client.OnWorksheetUpdate += UpdateWorksheet;
-            client.OnCollaboratorCursorUpdate += LocalUpdateCursorPosition;
-
-            Document.DocumentName = client.Endpoint.ToString();
-
-            if (NetworkClient.isConnecting)
+            Document.Dispatcher.Invoke(() =>
             {
-                NetworkClient.OnConnectFinished += (_) => UpdateConnectionStatus(NetworkClient.HostClient.Connected);
-            }
-            else
-            {
-                UpdateConnectionStatus(NetworkClient.HostClient.Connected);
-            }
+                Document.DocumentName = client.Endpoint.ToString();
+                Document.DocumentTabIcon = @"C:\Program Files\Lenovo\Nerve Center\TaskbarSkin\ResPath_black\GZMenu\btn_discover_loading.gif";
 
-            Document.DocumentTabIcon = System.IO.Path.GetFullPath(ConnectionIcon);
+                if (NetworkClient.isConnecting)
+                {
+                    NetworkClient.OnConnectFinished += (_) => Document.Dispatcher.Invoke(() => UpdateConnectionStatus(NetworkClient.HostClient.Connected));
+                }
+                else
+                {
+                    UpdateConnectionStatus(NetworkClient.HostClient.Connected);
+                }
+            });
         }
 
-        private void NetworkClient_OnConnectFinished(NetworkClient.ConnectStatus obj)
-        {
-            throw new System.NotImplementedException();
-        }
-
+        /// <summary>
+        /// Unhooks document.
+        /// </summary>
         public void StopSharing()
         {
             Document.Worksheet.PropertyChanged -= PropertyChanged;
             Document.KeyUp -= MousePositionMightveChanged;
 
-            Document.DocumentTabIcon = "";
+            Document.Dispatcher.Invoke(() =>
+            {
+                Document.DocumentTabIcon = "";
+            });
         }
 
+        /// <summary>
+        /// Requires dispatching.
+        /// </summary>
+        /// <param name="connected"></param>
         private void UpdateConnectionStatus(bool connected)
         {
-            Document.DocumentTabIcon = System.IO.Path.GetFullPath(connected ? ConnectionIcon : NoConnectionIcon);
+            Document.DocumentTabIcon = System.IO.Path.GetFullPath(connected ? BootlegResourceManager.Icons.ConnectIcon : BootlegResourceManager.Icons.NoConnectionIcon);
         }
 
         private void PushDocument()
@@ -140,49 +151,54 @@ namespace ShareCad
             log.Print("Pushed document");
         }
 
+        /// <summary>
+        /// Requires dispatching.
+        /// </summary>
+        /// <param name="doc"></param>
         private void UpdateWorksheet(XmlDocument doc)
         {
-            Document.Dispatcher.Invoke(() =>
+            ignoreFirstNetworkPush = true;
+
+            // den region man skriver i lige nu.
+            var currentItem = viewModel.ActiveItem;
+
+            var worksheetItems = viewModel.WorksheetItems;
+            if (worksheetItems.Count > 0)
             {
-                ignoreFirstNetworkPush = true;
+                Point previousPosition = viewModel.InsertionPoint;
 
-                // den region man skriver i lige nu.
-                var currentItem = viewModel.ActiveItem;
+                // Select every item on whiteboard.
+                viewModel.HandleSelectAll();
+                //documentViewModel.SelectItems(documentViewModel.WorksheetItems);
 
-                var worksheetItems = viewModel.WorksheetItems;
-                if (worksheetItems.Count > 0)
+                // Deselect current item if any.
+                if (!(currentItem is null))
                 {
-                    Point previousPosition = viewModel.InsertionPoint;
-
-                    // Select every item on whiteboard.
-                    viewModel.HandleSelectAll();
-                    //documentViewModel.SelectItems(documentViewModel.WorksheetItems);
-
-                    // Deselect current item if any.
-                    if (!(currentItem is null))
-                    {
-                        viewModel.ToggleItemSelection(currentItem, true);
-                    }
-
-                    // Delete all selected items.
-                    viewModel.HandleBackspace();
-
-                    // Change insertion point back to previous position.
-                    //documentViewModel.InsertionPoint = previousPosition;
+                    viewModel.ToggleItemSelection(currentItem, true);
                 }
 
-                ManipulateWorksheet.DeserializeAndApplySection(Document, doc.OuterXml);
+                // Delete all selected items.
+                viewModel.HandleBackspace();
 
-                log.Print("Your worksheet has been updated");
-            });
+                // Change insertion point back to previous position.
+                //documentViewModel.InsertionPoint = previousPosition;
+            }
+
+            ManipulateWorksheet.DeserializeAndApplySection(Document, doc.OuterXml);
+
+            log.Print("Your worksheet has been updated");
         }
 
         private void PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == "IsCalculating")
             {
-                networkPushDebounce.Interval = Update_DebounceTimeout;
-                networkPushDebounce.Start();
+                // refresh connected status.
+                if (isConnected)
+                {
+                    networkPushDebounce.Interval = Update_DebounceTimeout;
+                    networkPushDebounce.Start();
+                }
             }
         }
 
@@ -217,9 +233,9 @@ namespace ShareCad
             previousCursorPosition = Document.InsertionPoint;
         }
 
-        private Dictionary<byte, CollaboratorCrosshair> collaboratorCrosshairs = new Dictionary<byte, CollaboratorCrosshair>();
+        private readonly Dictionary<byte, CollaboratorCrosshair> collaboratorCrosshairs = new Dictionary<byte, CollaboratorCrosshair>();
 
-        public void LocalUpdateCursorPosition(byte ID, Point position)
+        public void UpdateLocalCursorPosition(byte ID, Point position)
         {
             // TODO: Implement visual for other cursors.
 
@@ -233,10 +249,91 @@ namespace ShareCad
                 }
 
                 crosshair.MoveCrosshair(position);
-
-
             });
         }
+
+        /*
+        private static void Worksheet_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            log.Print($"PropertyChange invoked - {e.PropertyName}");
+
+            //WorksheetControl control = (WorksheetControl)sender;
+            //var worksheetData = control.GetWorksheetData();
+
+            //var viewModel = control.GetViewModel();
+
+            //Console.WriteLine($" - ActiveItem: {control.ActiveItem}, {control.ActiveDescendant}, {control.CurrentElement}");
+            // for at finde ud af hvad der gør dem unik så man kan sende et ID med over nettet.
+            //Console.WriteLine($"ID: {control.PersistId}");
+
+            // Liste over aktive elementer.
+            //Console.WriteLine(" - Active section items:");
+            //foreach (var item in worksheetData.WorksheetContent.RegionsToSerialize)
+            //{
+            //    Console.WriteLine($"{item.Key}");
+            //}
+
+            switch (e.PropertyName)
+            {
+                case "SelectedDescendants":
+                    #region Testing
+                    // finder det første element lavet, eller null.
+                    //var firstElement = control.ActiveSectionItems.FirstOrDefault();
+
+                    // aktivér debug test scenarie hvis der laves en tekstboks som det første element.
+                    //if (firstElement is TextRegion realText)
+                    //{
+                    //Console.WriteLine("First element is text");
+
+                    // flyt det første element til koordinatet (0, 5)
+                    //control.MoveItemGridLocation(firstElement, new Point(0, 2));
+
+                    //realText.Text = "👑〖⚡ᖘ๖ۣۜℜΘ𝕵ECT ΘVERRIDE⚡〗👑";
+
+                    // Prøv at oprette et tekst element, (der bliver ikke gjort mere ved det lige nu).
+                    //Ptc.Controls.Text.TextRegion textRegion = new Ptc.Controls.Text.TextRegion()
+                    //{
+                    //    Text = "INJECTED!",
+                    //};
+
+                    // Indsæt tekst element.
+                    //viewModel.AddItemAtLocation(textRegion, viewModel.GridLocationToWorksheetLocation(new Point(5, 7)));
+
+                    // Profit! (andre test ting)
+                    //if (worksheetData is null)
+                    //{
+                    //    break;
+                    //}
+                    //
+                    //using (Stream xmlStream = SerializeRegions(worksheetData.WorksheetContent))
+                    //{
+                    //    Networking.Networking.TransmitStream(xmlStream);
+                    //}
+
+                    //TcpClient client = new TcpClient("192.168.2.215", 8080);
+                    //var tcpStream = client.GetStream();
+                    //Networking.Networking.Server.BindListener(IPAddress.Loopback);
+                    //}
+                    //else if (firstElement is SolveBlockControl solveBlock)
+                    //{
+                    //    Console.WriteLine("First element is solveblock");
+                    //    Networking.Networking.Client.Connect(IPAddress.Loopback);
+                    //}
+                    #endregion
+                    break;
+                case "CurrentElement":
+                    break;
+                case "WorksheetPageLayoutMode":
+                    // changed from draft to page
+                    break;
+                case "IsCalculating":
+                    networkPushDebounce.Interval = Update_DebounceTimeout;
+                    networkPushDebounce.Start();
+                    break;
+                default:
+                    break;
+            }
+        }*/
 
         /// <summary>
         /// Manages collaborator crosshairs. One crosshair per page. Currently only supports non-draft mode.
@@ -249,10 +346,10 @@ namespace ShareCad
             /// <summary>
             /// Crosshair instances by their page index.
             /// </summary>
-            private Dictionary<int, Crosshair> crosshairInstances = new Dictionary<int, Crosshair>();
-            private SolidColorBrush crosshairColor = Brushes.Green;
+            private readonly Dictionary<int, Crosshair> crosshairInstances = new Dictionary<int, Crosshair>();
+            private readonly SolidColorBrush crosshairColor = Brushes.Green;
+            private readonly IWorksheetViewModel viewModel;
             private int previousPage;
-            private IWorksheetViewModel viewModel;
 
             public CollaboratorCrosshair(IWorksheetViewModel viewModel)
             {

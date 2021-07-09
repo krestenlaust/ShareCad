@@ -10,20 +10,20 @@ namespace ShareCad.Networking
     /// Temporarily appended 'Thing' to differentiate between this new class called NetworkManager and the old one.
     /// They have different functions.
     /// </summary>
-    public class NetworkManagerThing
+    public class NetworkManager
     {
         public const short DefaultPort = 4040;
         public const int NetworkUpdateInterval = 100;
 
+        public NetworkClient FocusedClient = null;
         private short currentPort = DefaultPort;
         private readonly Logger log = new Logger("Manager", false);
-        private Thread networkThread;
+        private readonly Thread networkThread;
         private bool networkRunning = true;
-        private List<Server> servers = new List<Server>();
-        private List<NetworkClient> clients = new List<NetworkClient>();
-        public NetworkClient FocusedClient = null;
+        private readonly List<Server> servers = new List<Server>();
+        private readonly List<NetworkClient> clients = new List<NetworkClient>();
 
-        public NetworkManagerThing()
+        public NetworkManager()
         {
             networkThread = new Thread(NetworkLoop);
             networkThread.Start();

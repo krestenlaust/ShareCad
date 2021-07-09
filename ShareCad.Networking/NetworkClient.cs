@@ -61,25 +61,6 @@ namespace ShareCad.Networking
         /// </summary>
         public event Action<byte, Point> OnCollaboratorCursorUpdate;
 
-
-        /*
-        ///<summary>
-        /// Initializes server at endpoint if Host, and a client connecting to the endpoint.
-        /// </summary>
-        /// <param name="serverEndpoint"></param>
-        /// <exception cref="SocketException"></exception>
-        public void Start(IPAddress address, int port = DefaultPort) => Start(new IPEndPoint(address, port));
-
-        /// <summary>
-        /// Initializes server at endpoint if Host, and a client connecting to the endpoint.
-        /// </summary>
-        /// <param name="serverEndpoint"></param>
-        /// <exception cref="SocketException"></exception>
-        public void Start(IPEndPoint endPoint)
-        {
-
-        }*/
-
         /// <summary>
         /// Connects to the host configured in constructor.
         /// </summary>
@@ -132,27 +113,54 @@ namespace ShareCad.Networking
                 return;
             }
 
-            // data is available.
-            PacketType packetType = (PacketType)stream.ReadByte();
+            Dictionary<PacketType, Packet> packets = new Dictionary<PacketType, Packet>();
+            Dictionary<byte, Point> cursorPositions = new Dictionary<byte, Point>();
 
-            switch (packetType)
+            while (stream.DataAvailable)
             {
-                case PacketType.DocumentUpdate:
-                    DocumentUpdate documentUpdate = new DocumentUpdate(stream);
-                    documentUpdate.Parse();
+                // data is available.
+                PacketType packetType = (PacketType)stream.ReadByte();
+                Packet packet = null;
 
-                    OnWorksheetUpdate?.Invoke(documentUpdate.XmlDocument);
-                    break;
-                case PacketType.DocumentRequest: // not valid on client.
-                    break;
-                case PacketType.CursorUpdate:
-                    CursorUpdateServer cursorUpdate = new CursorUpdateServer(stream);
-                    cursorUpdate.Parse();
+                switch (packetType)
+                {
+                    case PacketType.DocumentUpdate:
+                        packet = new DocumentUpdate(stream);
+                        break;
+                    case PacketType.DocumentRequest: // not valid on client.
+                        break;
+                    case PacketType.CursorUpdate:
+                        CursorUpdateServer packet2 = new CursorUpdateServer(stream);
 
-                    OnCollaboratorCursorUpdate?.Invoke(cursorUpdate.CollaboratorID, cursorUpdate.Position);
-                    break;
-                default:
-                    break;
+                        packet2.Parse();
+                        cursorPositions[packet2.CollaboratorID] = packet2.Position;
+                        continue;
+                    default:
+                        break;
+                }
+
+                packets[packetType] = packet;
+            }
+
+            foreach (var item in packets.Values)
+            {
+                item.Parse();
+
+                switch (item)
+                {
+                    case DocumentUpdate documentUpdate:
+                        OnWorksheetUpdate?.Invoke(documentUpdate.XmlDocument);
+                        break;
+                    case CursorUpdateServer _: // handled independently.
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            foreach (var item in cursorPositions)
+            {
+                OnCollaboratorCursorUpdate?.Invoke(item.Key, item.Value);
             }
         }
 

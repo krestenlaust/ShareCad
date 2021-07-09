@@ -27,7 +27,7 @@ namespace ShareCad
             //WorksheetControl control = (WorksheetControl)sender;
             //var worksheetData = control.GetWorksheetData();
 
-            var viewModel = ((WorksheetControl)engineeringDocument.Worksheet).GetViewModel();
+            //var viewModel = ((WorksheetControl)engineeringDocument.Worksheet).GetViewModel();
 
             worksheetRegionCollectionSerializer regionCollectionSerializer = new worksheetRegionCollectionSerializer();
 

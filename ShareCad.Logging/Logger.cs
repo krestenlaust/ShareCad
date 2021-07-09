@@ -10,7 +10,7 @@ namespace ShareCad.Logging
         private const char ParameterEnd = ']';
 
         private readonly string prefix;
-        private bool printTime;
+        private readonly bool printTime;
         
         public Logger(string prefix, bool printTime)
         {
