@@ -154,8 +154,15 @@ namespace ShareCad
 			}
 		}
 
+		public void CustomPackFlowDocument(FlowDocument flowDocument, Stream destinationStream)
+        {
+			TextRegionSerializationHelper.SaveTextRangeAsXamlPackage(TextRegionSerializationHelper.GetTextRangeFromStartToEnd(flowDocument), destinationStream);
+		}
+
 		public string PackFlowDocument(FlowDocument flowDocument, string regionId)
 		{
+			return "";
+
 			PackagePart packagePart = PackagePart;
 			PackagePart packagePart2 = PackageOperationsProvider.Instance.AddPartToPackage(packagePart.Package, string.Format("/mathcad/xaml/FlowDocument{0}.{1}", regionId, DataFormats.XamlPackage), "application/zip");
 			PackageRelationship packageRelationship = packagePart.CreateRelationship(packagePart2.Uri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/flowDocument");

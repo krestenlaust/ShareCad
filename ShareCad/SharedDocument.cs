@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Timers;
@@ -91,7 +92,7 @@ namespace ShareCad
             Document.Dispatcher.Invoke(() =>
             {
                 Document.DocumentName = client.Endpoint.ToString();
-                Document.DocumentTabIcon = @"C:\Program Files\Lenovo\Nerve Center\TaskbarSkin\ResPath_black\GZMenu\btn_discover_loading.gif";
+                //Document.DocumentTabIcon = @"C:\Program Files\Lenovo\Nerve Center\TaskbarSkin\ResPath_black\GZMenu\btn_discover_loading.gif";
 
                 if (NetworkClient.isConnecting)
                 {
@@ -161,15 +162,26 @@ namespace ShareCad
 
             // den region man skriver i lige nu.
             var currentItem = viewModel.ActiveItem;
+            var currentPageNumber = viewModel.CurrentPageNumber;
 
             var worksheetItems = viewModel.WorksheetItems;
             if (worksheetItems.Count > 0)
             {
                 Point previousPosition = viewModel.InsertionPoint;
-
+                
                 // Select every item on whiteboard.
                 viewModel.HandleSelectAll();
                 //documentViewModel.SelectItems(documentViewModel.WorksheetItems);
+
+                foreach (var item in viewModel.ActiveOrSelectedItems)
+                {
+                    if (item is Ptc.Controls.Text.TextRegion)
+                    {
+                        continue;
+                    }
+
+                    viewModel.ToggleItemSelection(item, false);
+                }
 
                 // Deselect current item if any.
                 if (!(currentItem is null))
@@ -181,10 +193,26 @@ namespace ShareCad
                 viewModel.HandleBackspace();
 
                 // Change insertion point back to previous position.
-                //documentViewModel.InsertionPoint = previousPosition;
+                viewModel.InsertionPoint = previousPosition;
             }
 
             ManipulateWorksheet.DeserializeAndApplySection(Document, doc.OuterXml);
+
+            /*
+            try
+            {
+                viewModel.PageManager.ScrollToPageIfNeeded(viewModel.Pages[currentPageNumber]);
+            }
+            catch (System.Exception e)
+            {
+                log.PrintError("cant scroll");
+            }*/
+
+            /*
+            if (!(currentItem is null))
+            {
+                viewModel.PageManager.VisualHelper.BringIntoView(currentItem);
+            }*/
 
             log.Print("Your worksheet has been updated");
         }

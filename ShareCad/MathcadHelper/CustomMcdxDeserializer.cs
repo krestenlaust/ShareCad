@@ -116,6 +116,17 @@ namespace ShareCad
             _deserializationStrategy.DeserializeRegionsEpilog(xmlContentDocument);
         }
 
+        public void CustomUnpackFlowDocument(ref FlowDocument flowDocument, Stream sourceStream)
+        {
+            if (flowDocument is null)
+            {
+                flowDocument = new FlowDocument();
+            }
+
+            TextRange textRangeFromStartToEnd = TextRegionSerializationHelper.GetTextRangeFromStartToEnd(flowDocument);
+            textRangeFromStartToEnd.Load(sourceStream, DataFormats.XamlPackage);
+        }
+
         public void UnpackFlowDocument(ref FlowDocument flowDocument, string itemIdRef)
         {
             //Stream sourceStream = PackageOperationsProvider.GetSourceStream(this.PackagePart, itemIdRef);

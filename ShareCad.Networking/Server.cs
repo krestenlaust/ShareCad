@@ -131,8 +131,14 @@ namespace ShareCad.Networking
                             }
 
                             byte[] serializedDocumentPacket = packet.Serialize();
-
-                            stream.Write(serializedDocumentPacket, 0, serializedDocumentPacket.Length);
+                            try
+                            {
+                                stream.Write(serializedDocumentPacket, 0, serializedDocumentPacket.Length);
+                            }
+                            catch (IOException)
+                            {
+                                logger.PrintError("Collaborator connection closed");
+                            }
                             break;
                         case CursorUpdateClient cursorUpdate:
                             currentCollaborator.CursorLocation = cursorUpdate.Position;
@@ -164,7 +170,14 @@ namespace ShareCad.Networking
                 }
 
                 NetworkStream stream = item.TcpClient.GetStream();
-                stream.Write(serializedPacket, 0, serializedPacket.Length);
+                try
+                {
+                    stream.Write(serializedPacket, 0, serializedPacket.Length);
+                }
+                catch (IOException)
+                {
+                    logger.PrintError("Collaborator connection closed");
+                }
             }
         }
 
@@ -187,7 +200,14 @@ namespace ShareCad.Networking
                 }
 
                 NetworkStream stream = item.TcpClient.GetStream();
-                stream.Write(serializedPacket, 0, serializedPacket.Length);
+                try
+                {
+                    stream.Write(serializedPacket, 0, serializedPacket.Length);
+                }
+                catch (IOException)
+                {
+                    logger.PrintError("Collaborator connection closed");
+                }
             }
         }
 
