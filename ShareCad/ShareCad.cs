@@ -24,6 +24,12 @@ namespace ShareCad
     [HarmonyPatch]
     public class ShareCad
     {
+        enum Modes
+        {
+            ShareMode,
+            LogWindow
+        }
+
         public static ShareCad Instance;
         public static SpiritMainWindow SpiritMainWindow;
         public static IMessageBoxManager MessageBoxManager;
@@ -46,6 +52,25 @@ namespace ShareCad
             if (initializedModule)
                 return;
 
+            // TODO: Hej Alexander, jeg gad godt have nogle command line arguments her.
+            string[] args;
+            // ...
+            args = new string[] { "-share" };
+            // ...
+            
+            List<Modes> modes = ParseCommandlineArguments(args);
+
+            if (!modes.Contains(Modes.ShareMode))
+            {
+                Console.WriteLine("ShareCad disabled");
+                return;
+            }
+
+            if (modes.Contains(Modes.LogWindow))
+            {
+                WinConsole.Initialize();
+            }
+
             Instance = this;
             SpiritMainWindow = (SpiritMainWindow)Application.Current.MainWindow;
             MessageBoxManager = (IMessageBoxManager)AccessTools.Property(typeof(SpiritMainWindow), "MessageBoxManager").GetValue(SpiritMainWindow);
@@ -55,12 +80,32 @@ namespace ShareCad
             var harmony = new Harmony("ShareCad");
             harmony.PatchAll(Assembly.GetExecutingAssembly());
 
-            WinConsole.Initialize();
-
             ShareCadRibbonParts.ExtendRibbonControl(GetRibbon());
 
             Log.Print("LOADED!");
             initializedModule = true;
+        }
+
+        private List<Modes> ParseCommandlineArguments(string[] args)
+        {
+            List<Modes> modes = new List<Modes>();
+
+            foreach (var item in args)
+            {
+                switch (item.ToLower())
+                {
+                    case "-share":
+                        modes.Add(Modes.ShareMode);
+                        break;
+                    case "-log":
+                        modes.Add(Modes.LogWindow);
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            return modes;
         }
 
         private void ShareCad_SelectionChanged(object sender, SelectionChangedEventArgs e)

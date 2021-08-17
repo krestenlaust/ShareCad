@@ -129,6 +129,8 @@ namespace ShareCad
 
         public void UnpackFlowDocument(ref FlowDocument flowDocument, string itemIdRef)
         {
+            // TODO: Support recieving flowdocuments.
+
             //Stream sourceStream = PackageOperationsProvider.GetSourceStream(this.PackagePart, itemIdRef);
             if (_sourceStream != null)
             {

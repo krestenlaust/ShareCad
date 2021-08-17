@@ -18,6 +18,7 @@ namespace ShareCad
         public InquireIP()
         {
             InitializeComponent();
+            AcceptButton = buttonOk;
         }
 
         private void InquireIP_Load(object sender, EventArgs e)

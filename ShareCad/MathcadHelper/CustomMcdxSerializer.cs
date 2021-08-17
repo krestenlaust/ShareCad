@@ -161,6 +161,7 @@ namespace ShareCad
 
 		public string PackFlowDocument(FlowDocument flowDocument, string regionId)
 		{
+			// TODO: Supporting sending flowdocuments.
 			return "";
 
 			PackagePart packagePart = PackagePart;

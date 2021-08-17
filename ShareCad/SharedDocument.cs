@@ -34,6 +34,7 @@ namespace ShareCad
         private readonly Logging.Logger log;
         private readonly Timer networkPushDebounce = new Timer();
         private bool ignoreFirstNetworkPush = true;
+        private bool ignoreNextCalculateChange = false;
 
         /// <summary>
         /// Updates visual indicators of connection, and returns the connection status.
@@ -171,16 +172,14 @@ namespace ShareCad
                 
                 // Select every item on whiteboard.
                 viewModel.HandleSelectAll();
-                //documentViewModel.SelectItems(documentViewModel.WorksheetItems);
 
+                // Deselect controls that aren't capable of being shared.
                 foreach (var item in viewModel.ActiveOrSelectedItems)
                 {
                     if (item is Ptc.Controls.Text.TextRegion)
                     {
-                        continue;
+                        viewModel.ToggleItemSelection(item, false);
                     }
-
-                    viewModel.ToggleItemSelection(item, false);
                 }
 
                 // Deselect current item if any.
@@ -196,6 +195,7 @@ namespace ShareCad
                 viewModel.InsertionPoint = previousPosition;
             }
 
+            ignoreNextCalculateChange = true;
             ManipulateWorksheet.DeserializeAndApplySection(Document, doc.OuterXml);
 
             /*
@@ -221,6 +221,13 @@ namespace ShareCad
         {
             if (e.PropertyName == "IsCalculating")
             {
+                if (ignoreNextCalculateChange)
+                {
+                    ignoreNextCalculateChange = false;
+                    log.Print("Ignored calculate update");
+                    return;
+                }
+
                 // refresh connected status.
                 if (isConnected)
                 {
