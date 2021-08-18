@@ -88,6 +88,7 @@ namespace ShareCad
                         }
 
                         ShareCad.NewDocumentIP = result.IP;
+                        ShareCad.NewDocumentPort = result.Port;
                         ShareCad.NewDocumentAction = NetworkFunction.Guest;
                         AppCommands.NewEngineeringDocument.Execute(null, ShareCad.SpiritMainWindow);
                     }
@@ -107,9 +108,12 @@ namespace ShareCad
                 Items.Add(panel);
 
                 ButtonEx disconnectAllButton = CreateButtonEx(
-                    "Disconnect all",
+                    "Stop sharing",
                     null,
-                    null);
+                    delegate
+                    {
+                        ShareCad.NetworkManager.Stop();
+                    });
                 panel.Children.Add(disconnectAllButton);
             }
         }

@@ -14,6 +14,7 @@ namespace ShareCad
     public partial class InquireIP : Form
     {
         public IPAddress IP { get; private set; }
+        public int Port { get; private set; }
 
         public InquireIP()
         {
@@ -40,13 +41,16 @@ namespace ShareCad
         private void TryParseIPAddress()
         {
             bool parseResult = IPAddress.TryParse(textBoxIP.Text, out IPAddress ip);
-            
-            labelParseResult.Visible = !parseResult;
-            buttonOk.Enabled = parseResult;
+            bool parsePort = int.TryParse(textBoxPort.Text, out int port);
+            bool parsed = parseResult && parsePort;
 
-            if (parseResult)
+            labelParseResult.Visible = !parsed;
+            buttonOk.Enabled = parsed;
+
+            if (parsed)
             {
                 IP = ip;
+                Port = port;
             }
         }
 

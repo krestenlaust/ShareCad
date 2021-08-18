@@ -47,6 +47,7 @@ namespace ShareCad
                 {
                     UpdateConnectionStatus(NetworkClient.HostClient.Connected);
                 }
+
                 previousConnectedStatus = NetworkClient.HostClient.Connected;
 
                 return previousConnectedStatus;

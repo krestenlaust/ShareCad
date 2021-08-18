@@ -36,6 +36,7 @@ namespace ShareCad
             this.textBoxIP = new System.Windows.Forms.TextBox();
             this.labelParseResult = new System.Windows.Forms.Label();
             this.pictureBoxIcon = new System.Windows.Forms.PictureBox();
+            this.textBoxPort = new System.Windows.Forms.TextBox();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxIcon)).BeginInit();
             this.SuspendLayout();
             // 
@@ -103,11 +104,20 @@ namespace ShareCad
             this.pictureBoxIcon.TabIndex = 5;
             this.pictureBoxIcon.TabStop = false;
             // 
+            // textBoxPort
+            // 
+            this.textBoxPort.Location = new System.Drawing.Point(272, 42);
+            this.textBoxPort.Name = "textBoxPort";
+            this.textBoxPort.Size = new System.Drawing.Size(100, 22);
+            this.textBoxPort.TabIndex = 6;
+            this.textBoxPort.Text = "4040";
+            // 
             // InquireIP
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(528, 120);
+            this.Controls.Add(this.textBoxPort);
             this.Controls.Add(this.pictureBoxIcon);
             this.Controls.Add(this.labelParseResult);
             this.Controls.Add(this.textBoxIP);
@@ -133,5 +143,6 @@ namespace ShareCad
         private System.Windows.Forms.TextBox textBoxIP;
         private System.Windows.Forms.Label labelParseResult;
         private System.Windows.Forms.PictureBox pictureBoxIcon;
+        private System.Windows.Forms.TextBox textBoxPort;
     }
 }

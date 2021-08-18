@@ -57,7 +57,7 @@ namespace ShareCad.Networking
 
             foreach (Collaborator currentCollaborator in clients)
             {
-                if (currentCollaborator?.TcpClient is null)
+                if (currentCollaborator?.TcpClient.Connected != true)
                 {
                     continue;
                 }

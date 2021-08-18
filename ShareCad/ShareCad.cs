@@ -34,14 +34,15 @@ namespace ShareCad
         public static SpiritMainWindow SpiritMainWindow;
         public static IMessageBoxManager MessageBoxManager;
 
+        public static readonly NetworkManager NetworkManager = new NetworkManager();
         public static NetworkFunction? NewDocumentAction = null;
         public static IPAddress NewDocumentIP = IPAddress.Loopback;
+        public static int NewDocumentPort = NetworkManager.DefaultPort;
         /// <summary>
         /// Sand, når modulet er initializeret.
         /// </summary>
         private static bool initializedModule = false;
         private static readonly List<SharedDocument> sharedDocuments = new List<SharedDocument>();
-        private static readonly NetworkManager NetworkManager = new NetworkManager();
         public static Logger Log = new Logger("", true);
 
         /// <summary>
@@ -55,7 +56,8 @@ namespace ShareCad
             // TODO: Hej Alexander, jeg gad godt have nogle command line arguments her.
             string[] args;
             // ...
-            args = new string[] { "-share" };
+            args = new string[] { "-share", "-log" };
+            //args = Environment.GetCommandLineArgs();
             // ...
             
             List<Modes> modes = ParseCommandlineArguments(args);
@@ -68,11 +70,12 @@ namespace ShareCad
 
             if (modes.Contains(Modes.LogWindow))
             {
-                WinConsole.Initialize();
+                //WinConsole.Initialize();
             }
 
             Instance = this;
             SpiritMainWindow = (SpiritMainWindow)Application.Current.MainWindow;
+            SpiritMainWindow.Closed += SpiritMainWindow_Closed;
             MessageBoxManager = (IMessageBoxManager)AccessTools.Property(typeof(SpiritMainWindow), "MessageBoxManager").GetValue(SpiritMainWindow);
 
             ((DockWindowGroup)AccessTools.Field(typeof(SpiritMainWindow), "MainDockWindowGroup").GetValue(SpiritMainWindow)).SelectionChanged += ShareCad_SelectionChanged;
@@ -84,6 +87,14 @@ namespace ShareCad
 
             Log.Print("LOADED!");
             initializedModule = true;
+        }
+
+        private void SpiritMainWindow_Closed(object sender, EventArgs e)
+        {
+            NetworkManager.Stop();
+            Instance = null;
+            SpiritMainWindow = null;
+            Application.Current.Dispatcher.InvokeShutdown();
         }
 
         private List<Modes> ParseCommandlineArguments(string[] args)
@@ -143,7 +154,7 @@ namespace ShareCad
                 return;
             }
 
-            short port = NetworkManager.DefaultPort;
+            int port = NewDocumentPort;
 
             if (NewDocumentAction.Value == NetworkFunction.Host)
             {
