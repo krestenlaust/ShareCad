@@ -20,8 +20,8 @@ namespace ShareCad.Networking.Packets
         {
             PacketType = PacketType.CursorUpdate;
 
-            serializedData = new byte[sizeof(double) * 2];
-            stream.Read(serializedData, 0, sizeof(double) * 2);
+            serializedData = new byte[sizeof(double) * 2 + sizeof(bool)];
+            stream.Read(serializedData, 0, serializedData.Length);
         }
 
         public override void Parse()
@@ -34,7 +34,7 @@ namespace ShareCad.Networking.Packets
 
         public override byte[] Serialize()
         {
-            byte[] data = new byte[1 + sizeof(double) * 2];
+            byte[] data = new byte[1 + sizeof(double) * 2 + sizeof(bool)];
             data[0] = (byte)PacketType;
             BitConverter.GetBytes(Position.X).CopyTo(data, 1);
             BitConverter.GetBytes(Position.Y).CopyTo(data, 1 + sizeof(double));

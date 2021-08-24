@@ -8,14 +8,17 @@ namespace ShareCad.Networking.Packets
     {
         public byte CollaboratorID { get; private set; }
         public Point Position { get; private set; }
+        public bool DestroyCrosshair { get; private set; }
+
         private readonly byte[] serializedData;
 
-        public CursorUpdateServer(byte collaboratorID, Point position)
+        public CursorUpdateServer(byte collaboratorID, Point position, bool destroyCrosshair)
         {
             PacketType = PacketType.CursorUpdate;
 
             CollaboratorID = collaboratorID;
             Position = position;
+            DestroyCrosshair = destroyCrosshair;
         }
 
         public CursorUpdateServer(Stream stream)
@@ -24,8 +27,8 @@ namespace ShareCad.Networking.Packets
 
             CollaboratorID = (byte)stream.ReadByte();
 
-            serializedData = new byte[sizeof(double) * 2];
-            stream.Read(serializedData, 0, sizeof(double) * 2);
+            serializedData = new byte[sizeof(double) * 2 + sizeof(bool)];
+            stream.Read(serializedData, 0, sizeof(double) * 2 + sizeof(bool));
         }
 
         public override void Parse()
@@ -34,15 +37,22 @@ namespace ShareCad.Networking.Packets
             double y = BitConverter.ToDouble(serializedData, sizeof(double));
 
             Position = new Point(x, y);
+
+            DestroyCrosshair = serializedData[sizeof(double) * 2] == 1;
         }
 
         public override byte[] Serialize()
         {
-            byte[] data = new byte[sizeof(double) * 2 + 2];
-            data[0] = (byte)PacketType;
-            data[1] = CollaboratorID;
-            BitConverter.GetBytes(Position.X).CopyTo(data, 2);
-            BitConverter.GetBytes(Position.Y).CopyTo(data, 2 + sizeof(double));
+            byte[] data = new byte[sizeof(double) * 2 + 2 + sizeof(bool)];
+            byte cursor = 0;
+            data[cursor++] = (byte)PacketType;
+            data[cursor++] = CollaboratorID;
+            BitConverter.GetBytes(Position.X).CopyTo(data, cursor);
+            cursor += sizeof(double);
+            BitConverter.GetBytes(Position.Y).CopyTo(data, cursor);
+            cursor += sizeof(double);
+
+            data[cursor++] = BitConverter.GetBytes(DestroyCrosshair)[0];
 
             return data;
         }

@@ -71,9 +71,9 @@ namespace ShareCad.Networking
                 }
 
                 // Handle server logic.
-                foreach (var item in servers)
+                foreach (var server in servers)
                 {
-                    item.Update();
+                    server.Update();
                 }
 
                 // Handle client logic.

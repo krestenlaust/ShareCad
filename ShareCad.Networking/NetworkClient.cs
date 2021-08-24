@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -37,6 +38,7 @@ namespace ShareCad.Networking
         public readonly TcpClient HostClient;
         public readonly IPEndPoint Endpoint;
         public bool isConnecting { get; private set; }
+        private bool isDisconnected = false;
 
         public NetworkClient(IPEndPoint endpoint)
         {
@@ -59,7 +61,9 @@ namespace ShareCad.Networking
         /// <summary>
         /// Called when another collaborator moves their cursor.
         /// </summary>
-        public event Action<byte, Point> OnCollaboratorCursorUpdate;
+        public event Action<byte, Point, bool> OnCollaboratorCursorUpdate;
+
+        public event Action OnDisconnected;
 
         /// <summary>
         /// Connects to the host configured in constructor.
@@ -73,10 +77,13 @@ namespace ShareCad.Networking
             // TODO: implement error-handling.
             HostClient.BeginConnect(Endpoint.Address, Endpoint.Port, new AsyncCallback(delegate (IAsyncResult ar)
             {
+                isConnecting = false;
+
                 try
                 {
                     HostClient.EndConnect(ar);
                     OnConnectFinished?.Invoke(ConnectStatus.Established);
+                    isDisconnected = false;
                     log.Print($"Connected to host on {HostClient.Client.RemoteEndPoint}");
                 }
                 catch (SocketException ex)
@@ -84,8 +91,6 @@ namespace ShareCad.Networking
                     log.PrintError(ex);
                     OnConnectFinished?.Invoke(ConnectStatus.Failed);
                 }
-
-                isConnecting = false;
             }), null);
         }
 
@@ -94,6 +99,8 @@ namespace ShareCad.Networking
             HostClient?.Close();
 
             log.Print("Disconnected");
+            OnDisconnected?.Invoke();
+            isDisconnected = true;
         }
 
         public void SendAllQueuedPackets()
@@ -114,7 +121,7 @@ namespace ShareCad.Networking
             }
 
             Dictionary<PacketType, Packet> packets = new Dictionary<PacketType, Packet>();
-            Dictionary<byte, Point> cursorPositions = new Dictionary<byte, Point>();
+            Dictionary<byte, (Point, bool)> cursorUpdates = new Dictionary<byte, (Point, bool)>();
 
             while (stream.DataAvailable)
             {
@@ -133,7 +140,7 @@ namespace ShareCad.Networking
                         CursorUpdateServer packet2 = new CursorUpdateServer(stream);
 
                         packet2.Parse();
-                        cursorPositions[packet2.CollaboratorID] = packet2.Position;
+                        cursorUpdates[packet2.CollaboratorID] = (packet2.Position, packet2.DestroyCrosshair);
                         continue;
                     default:
                         break;
@@ -166,9 +173,9 @@ namespace ShareCad.Networking
                 }
             }
 
-            foreach (var item in cursorPositions)
+            foreach (var item in cursorUpdates)
             {
-                OnCollaboratorCursorUpdate?.Invoke(item.Key, item.Value);
+                OnCollaboratorCursorUpdate?.Invoke(item.Key, item.Value.Item1, item.Value.Item2);
             }
         }
 
@@ -183,15 +190,21 @@ namespace ShareCad.Networking
 
         private void TransmitPacket(Packet packet)
         {
-            if (HostClient is null || !HostClient.Connected)
+            try
             {
-                return;
+                NetworkStream stream = HostClient.GetStream();
+
+                byte[] data = packet.Serialize();
+                stream.Write(data, 0, data.Length);
             }
-
-            NetworkStream stream = HostClient.GetStream();
-
-            byte[] data = packet.Serialize();
-            stream.Write(data, 0, data.Length);
+            catch (IOException)
+            {
+                if (!isDisconnected)
+                {
+                    OnDisconnected?.Invoke();
+                    isDisconnected = true;
+                }
+            }
         }
     }
 }

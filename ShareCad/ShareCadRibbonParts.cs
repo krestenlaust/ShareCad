@@ -11,6 +11,7 @@ using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 using System.IO;
 using Ptc.Wpf;
+using Ptc.Controls;
 
 namespace ShareCad
 {
@@ -27,12 +28,19 @@ namespace ShareCad
         // TODO: Crashes when file isn't found.
         private static Image CreateImage(string source)
         {
-            return new Image
+            try
             {
-                MaxHeight = 32,
-                MaxWidth = 32,
-                Source = new BitmapImage(new Uri(source, UriKind.RelativeOrAbsolute))
-            };
+                return new Image
+                {
+                    MaxHeight = 32,
+                    MaxWidth = 32,
+                    Source = new BitmapImage(new Uri(source, UriKind.RelativeOrAbsolute))
+                };
+            }
+            catch (FileNotFoundException)
+            {
+                return null;
+            }
         }
 
         private static ButtonEx CreateButtonEx(string header, Image image, RoutedEventHandler clickEvent)
@@ -65,15 +73,39 @@ namespace ShareCad
                 ButtonPanel panel = CreateButtonPanel();
                 Items.Add(panel);
 
-                ButtonEx hostButton = CreateButtonEx(
-                    "Share document",
-                    CreateImage(Path.GetFullPath(BootlegResourceManager.Icons.ShareIcon)),
+                ButtonEx hostNewButton = CreateButtonEx(
+                    "Share new document",
+                    CreateImage(Path.GetFullPath(BootlegResourceManager.Icons.ShareIconNew)),
                     delegate {
                         ShareCad.NewDocumentAction = NetworkFunction.Host;
                         AppCommands.NewEngineeringDocument.Execute(null, ShareCad.SpiritMainWindow);
                     }
                 );
-                panel.Children.Add(hostButton);
+                panel.Children.Add(hostNewButton);
+
+                ButtonEx hostCurrentButton = CreateButtonEx(
+                    "Share document",
+                    CreateImage(Path.GetFullPath(BootlegResourceManager.Icons.ShareIcon)),
+                    delegate
+                    {
+                        EngineeringDocument currentDocument = ShareCad.GetCurrentTabDocument();
+
+                        if (!(ShareCad.GetSharedDocumentByEngineeringDocument(currentDocument) is null))
+                        {
+                            Console.WriteLine("Already shared");
+                            return;
+                        }
+
+                        if (currentDocument is null)
+                        {
+                            return;
+                        }
+
+                        var sharedDoc = ShareCad.StartSharedDocument(currentDocument);
+                        ShareCad.NetworkManager.FocusedClient = sharedDoc.NetworkClient;
+                    }
+                );
+                panel.Children.Add(hostCurrentButton);
 
                 ButtonEx guestButton = CreateButtonEx(
                     "Connect to IP/hostname",

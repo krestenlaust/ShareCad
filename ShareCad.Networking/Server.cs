@@ -12,13 +12,14 @@ namespace ShareCad.Networking
 {
     internal class Server : IDisposable
     {
-        private const string EmptyDocumentXML = "<worksheet xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:ve=\"http://schemas.openxmlformats.org/markup-compatibility/2006\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\" xmlns:ws=\"http://schemas.mathsoft.com/worksheet50\" xmlns:ml=\"http://schemas.mathsoft.com/math50\" xmlns:u=\"http://schemas.mathsoft.com/units10\" xmlns:p=\"http://schemas.mathsoft.com/provenance10\" xmlns=\"http://schemas.mathsoft.com/worksheet50\"><regions /></worksheet>";
+        //private const string EmptyDocumentXML = "<worksheet xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:ve=\"http://schemas.openxmlformats.org/markup-compatibility/2006\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\" xmlns:ws=\"http://schemas.mathsoft.com/worksheet50\" xmlns:ml=\"http://schemas.mathsoft.com/math50\" xmlns:u=\"http://schemas.mathsoft.com/units10\" xmlns:p=\"http://schemas.mathsoft.com/provenance10\" xmlns=\"http://schemas.mathsoft.com/worksheet50\"><regions /></worksheet>";
 
         private readonly TcpListener listener;
         private readonly List<Collaborator> clients;
+        private readonly HashSet<Collaborator> disconnectedClients = new HashSet<Collaborator>();
+        private readonly Logger logger = new Logger("Server", false);
         private XmlDocument currentDocument;
         private byte availableCollaboratorID;
-        private readonly Logger logger = new Logger("Server", false);
 
         /// <summary>
         /// 
@@ -27,8 +28,8 @@ namespace ShareCad.Networking
         /// <exception cref="SocketException">Thrown when listener can't be established.</exception>
         public Server(IPEndPoint bindAddress)
         {
-            currentDocument = new XmlDocument();
-            currentDocument.LoadXml(EmptyDocumentXML);
+            //currentDocument = new XmlDocument();
+            //currentDocument.LoadXml(EmptyDocumentXML);
 
             clients = new List<Collaborator>();
 
@@ -59,6 +60,7 @@ namespace ShareCad.Networking
             {
                 if (currentCollaborator?.TcpClient.Connected != true)
                 {
+                    disconnectedClients.Add(currentCollaborator);
                     continue;
                 }
 
@@ -143,13 +145,23 @@ namespace ShareCad.Networking
                         case CursorUpdateClient cursorUpdate:
                             currentCollaborator.CursorLocation = cursorUpdate.Position;
 
-                            UpdateCursorAll(currentCollaborator.ID, cursorUpdate.Position);
+                            UpdateCursorAll(currentCollaborator.ID, cursorUpdate.Position, false);
                             break;
                         default:
                             break;
                     }
                 }
             }
+
+            foreach (Collaborator collaborator in disconnectedClients)
+            {
+                UpdateCursorAll(collaborator.ID, new Point(), true);
+
+                clients.Remove(collaborator);
+                logger.Print("Disconnected client");
+            }
+
+            disconnectedClients.Clear();
         }
 
         private void UpdateDocumentAll(XmlDocument newDocument, byte ignoreID=byte.MaxValue)
@@ -181,9 +193,9 @@ namespace ShareCad.Networking
             }
         }
 
-        private void UpdateCursorAll(byte collaboratorID, Point position)
+        private void UpdateCursorAll(byte collaboratorID, Point position, bool destroyCursor)
         {
-            CursorUpdateServer packet = new CursorUpdateServer(collaboratorID, position);
+            CursorUpdateServer packet = new CursorUpdateServer(collaboratorID, position, destroyCursor);
 
             byte[] serializedPacket = packet.Serialize();
 
@@ -213,14 +225,28 @@ namespace ShareCad.Networking
 
         private void ClientConnected(IAsyncResult ar)
         {
-            TcpClient newClient = listener.EndAcceptTcpClient(ar);
+            TcpClient newClient;
+            try
+            {
+                newClient = listener.EndAcceptTcpClient(ar);
+            }
+            catch (ObjectDisposedException)
+            {
+                return;
+            }
+
             listener.BeginAcceptTcpClient(new AsyncCallback(ClientConnected), null);
 
             clients.Add(new Collaborator(availableCollaboratorID++, newClient));
 
             logger.Print($"A collaborator connected on {newClient.Client.RemoteEndPoint}");
 
-            // send latest document state.
+            // send latest document state if any.
+            if (currentDocument is null)
+            {
+                return;
+            }
+
             DocumentUpdate packet = new DocumentUpdate(currentDocument);
             byte[] serializedPacket = packet.Serialize();
 

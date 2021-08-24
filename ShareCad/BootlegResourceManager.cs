@@ -14,6 +14,7 @@ namespace ShareCad
             public const string IpIcon = @"Images\ip_icon.png";
             public const string NoConnectionIcon = @"Images\noconnect_icon.png";
             public const string ShareIcon = @"Images\share_icon.png";
+            public const string ShareIconNew = @"Images\share_icon_new.png";
         }
     }
 }

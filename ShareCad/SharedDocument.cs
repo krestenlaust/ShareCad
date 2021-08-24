@@ -72,9 +72,11 @@ namespace ShareCad
             Document.Worksheet.PropertyChanged += PropertyChanged;
             Document.KeyUp += MousePositionMightveChanged;
             Document.MouseMove += MousePositionMightveChanged;
+            Document.OnDispose += Document_OnDispose;
             
             client.OnWorksheetUpdate += (doc) => Document.Dispatcher.Invoke(() => UpdateWorksheet(doc));
             client.OnCollaboratorCursorUpdate += UpdateLocalCursorPosition;
+            client.OnDisconnected += () => Document.Dispatcher.Invoke(() => UpdateConnectionStatus(false));
 
             networkPushDebounce.Stop();
             networkPushDebounce.Elapsed += delegate (object source, ElapsedEventArgs e)
@@ -93,8 +95,8 @@ namespace ShareCad
 
             Document.Dispatcher.Invoke(() =>
             {
-                Document.DocumentName = client.Endpoint.ToString();
-                //Document.DocumentTabIcon = @"C:\Program Files\Lenovo\Nerve Center\TaskbarSkin\ResPath_black\GZMenu\btn_discover_loading.gif";
+                Document.DocumentName = Document.DocumentName + "(delt)";
+                Document.CustomizedDocumentName = client.Endpoint.ToString();
 
                 if (NetworkClient.isConnecting)
                 {
@@ -107,11 +109,24 @@ namespace ShareCad
             });
         }
 
+        private void Document_OnDispose(IEngineeringDocument obj)
+        {
+            StopSharing();
+        }
+
         /// <summary>
         /// Unhooks document.
         /// </summary>
         public void StopSharing()
         {
+            NetworkClient?.DisconnectClient();
+            ShareCad.DecoupleSharedDocument(this);
+
+            if (Document is null)
+            {
+                return;
+            }
+
             Document.Worksheet.PropertyChanged -= PropertyChanged;
             Document.KeyUp -= MousePositionMightveChanged;
 
@@ -164,7 +179,6 @@ namespace ShareCad
 
             // den region man skriver i lige nu.
             var currentItem = viewModel.ActiveItem;
-            var currentPageNumber = viewModel.CurrentPageNumber;
 
             var worksheetItems = viewModel.WorksheetItems;
             if (worksheetItems.Count > 0)
@@ -271,7 +285,7 @@ namespace ShareCad
 
         private readonly Dictionary<byte, CollaboratorCrosshair> collaboratorCrosshairs = new Dictionary<byte, CollaboratorCrosshair>();
 
-        public void UpdateLocalCursorPosition(byte ID, Point position)
+        public void UpdateLocalCursorPosition(byte ID, Point position, bool destroyCursor)
         {
             // TODO: Implement visual for other cursors.
 
@@ -282,6 +296,13 @@ namespace ShareCad
                 {
                     crosshair = new CollaboratorCrosshair(viewModel);
                     collaboratorCrosshairs[ID] = crosshair;
+                }
+
+                if (destroyCursor)
+                {
+                    crosshair.Destroy();
+                    collaboratorCrosshairs.Remove(ID);
+                    return;
                 }
 
                 crosshair.MoveCrosshair(position);
@@ -439,20 +460,35 @@ namespace ShareCad
                 previousPage = newPageIndex;
             }
 
-            // TODO: ikke lavet endnu, lige nu laver den bare et crosshair på den første side.
-            private Crosshair InstantiateCrosshairOnPage(int pageIndex)
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="pageIndex"></param>
+            /// <returns>Null if page index is bigger than actual number of pages.</returns>
+            private PageBodyCanvas GetPageBodyCanvas(int pageIndex)
             {
                 IEnumerable<IWorksheetPage> pages = viewModel.PageManager.Pages;
 
-                // page doesn't exist.
-                if (pages.Count() <= pageIndex)
+                int pageCount = pages.Count();
+                if (pageCount <= pageIndex)
                 {
                     return null;
                 }
 
-                WorksheetPageBody worksheetPageBody = (WorksheetPageBody)pages.ElementAt(pageIndex).PageBody;
+                WorksheetPageBody pageBody = (WorksheetPageBody)pages.ElementAt(pageIndex).PageBody;
 
-                PageBodyCanvas pageBodyCanvas = (PageBodyCanvas)worksheetPageBody.Content;
+                return (PageBodyCanvas)pageBody.Content;
+            }
+
+            // TODO: ikke lavet endnu, lige nu laver den bare et crosshair på den første side.
+            private Crosshair InstantiateCrosshairOnPage(int pageIndex)
+            {
+                PageBodyCanvas canvas = GetPageBodyCanvas(pageIndex);
+
+                if (canvas is null)
+                {
+                    return null;
+                }
                 
                 Crosshair crosshair = new Crosshair();
                 Line line1 = (Line)crosshair.Children[0];
@@ -461,9 +497,26 @@ namespace ShareCad
                 line2.Stroke = crosshairColor;
 
                 crosshairInstances[pageIndex] = crosshair;
-                pageBodyCanvas.Children.Add(crosshair);
+                canvas.Children.Add(crosshair);
 
                 return crosshair;
+            }
+            
+            private void RemoveCrosshairOnPage(Crosshair crosshair, int pageIndex)
+            {
+                if (crosshair is null)
+                {
+                    return;
+                }
+
+                PageBodyCanvas canvas = GetPageBodyCanvas(pageIndex);
+
+                if (canvas is null)
+                {
+                    return;
+                }
+
+                canvas.Children.Remove(crosshair);
             }
 
 
@@ -480,6 +533,14 @@ namespace ShareCad
             {
                 Point gridPosition = viewModel.WorksheetLocationToGridLocation(worksheetPosition);
                 return GetPageByGridPosition(gridPosition);
+            }
+
+            internal void Destroy()
+            {
+                foreach (var item in crosshairInstances)
+                {
+                    RemoveCrosshairOnPage(item.Value, item.Key);
+                }
             }
         }
     }
