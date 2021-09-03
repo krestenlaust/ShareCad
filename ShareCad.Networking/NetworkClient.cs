@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -17,6 +18,7 @@ namespace ShareCad.Networking
         DocumentUpdate = 1,
         DocumentRequest = 2,
         CursorUpdate = 3,
+        SerializedXamlPackageUpdate = 4
     }
 
     /// <summary>
@@ -58,6 +60,7 @@ namespace ShareCad.Networking
         /// Called when to update worksheet.
         /// </summary>
         public event Action<XmlDocument> OnWorksheetUpdate;
+        public event Action<int, byte[]> OnXamlPackageUpdate;
         /// <summary>
         /// Called when another collaborator moves their cursor.
         /// </summary>
@@ -120,19 +123,20 @@ namespace ShareCad.Networking
                 return;
             }
 
-            Dictionary<PacketType, Packet> packets = new Dictionary<PacketType, Packet>();
+            Dictionary<PacketType, Packet> uniquePackets = new Dictionary<PacketType, Packet>();
             Dictionary<byte, (Point, bool)> cursorUpdates = new Dictionary<byte, (Point, bool)>();
+            List<Packet> otherPackets = new List<Packet>();
 
             while (stream.DataAvailable)
             {
                 // data is available.
                 PacketType packetType = (PacketType)stream.ReadByte();
-                Packet packet = null;
+                Packet uniquePacket = null;
 
                 switch (packetType)
                 {
                     case PacketType.DocumentUpdate:
-                        packet = new DocumentUpdate(stream);
+                        uniquePacket = new DocumentUpdate(stream);
                         break;
                     case PacketType.DocumentRequest: // not valid on client.
                         break;
@@ -142,22 +146,32 @@ namespace ShareCad.Networking
                         packet2.Parse();
                         cursorUpdates[packet2.CollaboratorID] = (packet2.Position, packet2.DestroyCrosshair);
                         continue;
+                    case PacketType.SerializedXamlPackageUpdate:
+                        otherPackets.Add(new SerializedXamlPackageUpdate(stream));
+                        break;
                     default:
                         break;
                 }
 
-                packets[packetType] = packet;
+                if (uniquePacket is null)
+                {
+                    continue;
+                }
+
+                uniquePackets[packetType] = uniquePacket;
             }
 
-            foreach (var item in packets.Values)
+            otherPackets.AddRange(uniquePackets.Values);
+
+            foreach (Packet item in otherPackets)
             {
                 try
                 {
                     item.Parse();
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    log.PrintError("Tried parsing invalid packet");
+                    log.PrintError("Tried parsing invalid packet: " + ex);
                     continue;
                 }
 
@@ -167,6 +181,9 @@ namespace ShareCad.Networking
                         OnWorksheetUpdate?.Invoke(documentUpdate.XmlDocument);
                         break;
                     case CursorUpdateServer _: // handled independently.
+                        break;
+                    case SerializedXamlPackageUpdate xamlPackage:
+                        OnXamlPackageUpdate?.Invoke(xamlPackage.ID, xamlPackage.SerializedXaml);
                         break;
                     default:
                         break;
@@ -182,6 +199,8 @@ namespace ShareCad.Networking
         public void SendDocument(XmlDocument document) => EnqueuePacket(new DocumentUpdate(document));
 
         public void SendCursorPosition(Point position) => EnqueuePacket(new CursorUpdateClient(position));
+
+        public void SendAsset(AssetPacket packet) => EnqueuePacket(packet);
 
         private void EnqueuePacket(Packet packet)
         {

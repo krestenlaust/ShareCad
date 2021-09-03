@@ -145,6 +145,7 @@
     <Compile Include="InquireIP.Designer.cs">
       <DependentUpon>InquireIP.cs</DependentUpon>
     </Compile>
+    <Compile Include="MathcadHelper\NewMcdxSerializer.cs" />
     <Compile Include="Old stuff\ControllerWindow.cs">
       <SubType>Form</SubType>
     </Compile>

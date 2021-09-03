@@ -18,6 +18,7 @@ namespace ShareCad.Networking
         private readonly List<Collaborator> clients;
         private readonly HashSet<Collaborator> disconnectedClients = new HashSet<Collaborator>();
         private readonly Logger logger = new Logger("Server", false);
+        private readonly HashSet<AssetPacket> assets = new HashSet<AssetPacket>();
         private XmlDocument currentDocument;
         private byte availableCollaboratorID;
 
@@ -66,17 +67,22 @@ namespace ShareCad.Networking
 
                 NetworkStream stream = currentCollaborator.TcpClient.GetStream();
 
-                Dictionary<PacketType, Packet> packets = new Dictionary<PacketType, Packet>();
+                // stores the type of packets where only the most recent one is relevant.
+                Dictionary<PacketType, Packet> uniquePackets = new Dictionary<PacketType, Packet>();
+                // stores packets where multiple of the same packet are reasonable.
+                List<Packet> nonUniquePackets = new List<Packet>();
 
                 while (stream.DataAvailable)
                 {
                     Packet packet = null;
+                    bool unique = false;
 
                     PacketType packetType = (PacketType)stream.ReadByte();
                     switch (packetType)
                     {
                         case PacketType.DocumentUpdate:
                             packet = new DocumentUpdate(stream);
+                            unique = true;
 
                             // Already recieved a new document this update.
                             if (documentSent)
@@ -86,11 +92,16 @@ namespace ShareCad.Networking
                             break;
                         case PacketType.DocumentRequest:
                             // send latest version of document to collaborator.
-                            packet = new DocumentUpdate(currentDocument);
+                            packet = new DocumentRequest();
+                            unique = true;
                             break;
                         case PacketType.CursorUpdate:
                             // update local cursor position of collaborator.
                             packet = new CursorUpdateClient(stream);
+                            unique = true;
+                            break;
+                        case PacketType.SerializedXamlPackageUpdate:
+                            packet = new SerializedXamlPackageUpdate(stream);
                             break;
                         default:
                             break;
@@ -101,24 +112,39 @@ namespace ShareCad.Networking
                         continue;
                     }
 
-                    packets[packetType] = packet;
+                    if (unique)
+                    {
+                        uniquePackets[packetType] = packet;
+                    }
+                    else
+                    {
+                        nonUniquePackets.Add(packet);
+                    }
                 }
 
+                // Combine packets, non-uniques before uniques.
+                nonUniquePackets.AddRange(uniquePackets.Values);
+
                 /// TODO: Sort packets to make documentrequest the last one.
-                foreach (Packet packet in packets.Values)
+                foreach (Packet packet in nonUniquePackets)
                 {
                     try
                     {
                         packet.Parse();
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
-                        logger.PrintError("Tried parsing invalid packet");
+                        logger.PrintError("Tried parsing invalid packet: " + ex);
+                        throw ex;
                         continue;
                     }
 
                     switch (packet)
                     {
+                        case SerializedXamlPackageUpdate xamlPackageUpdate:
+                            assets.Add(xamlPackageUpdate);
+                            SendPacketAll(xamlPackageUpdate.Serialize(), currentCollaborator.ID);
+                            break;
                         case DocumentUpdate documentUpdate:
                             currentCollaborator.Document = documentUpdate.XmlDocument;
                             
@@ -132,7 +158,8 @@ namespace ShareCad.Networking
                                 break;
                             }
 
-                            byte[] serializedDocumentPacket = packet.Serialize();
+                            byte[] serializedDocumentPacket = new DocumentUpdate(currentDocument).Serialize();
+
                             try
                             {
                                 stream.Write(serializedDocumentPacket, 0, serializedDocumentPacket.Length);
@@ -164,11 +191,8 @@ namespace ShareCad.Networking
             disconnectedClients.Clear();
         }
 
-        private void UpdateDocumentAll(XmlDocument newDocument, byte ignoreID=byte.MaxValue)
+        private void SendPacketAll(byte[] packet, byte ignoreID=byte.MaxValue)
         {
-            DocumentUpdate packet = new DocumentUpdate(newDocument);
-            byte[] serializedPacket = packet.Serialize();
-
             foreach (var item in clients)
             {
                 if (item?.TcpClient is null)
@@ -184,48 +208,35 @@ namespace ShareCad.Networking
                 NetworkStream stream = item.TcpClient.GetStream();
                 try
                 {
-                    stream.Write(serializedPacket, 0, serializedPacket.Length);
+                    stream.Write(packet, 0, packet.Length);
                 }
                 catch (IOException)
                 {
                     logger.PrintError("Collaborator connection closed");
                 }
             }
+        }
+
+        private void UpdateDocumentAll(XmlDocument newDocument, byte ignoreID=byte.MaxValue)
+        {
+            DocumentUpdate packet = new DocumentUpdate(newDocument);
+            byte[] serializedPacket = packet.Serialize();
+
+            SendPacketAll(serializedPacket, ignoreID);
         }
 
         private void UpdateCursorAll(byte collaboratorID, Point position, bool destroyCursor)
         {
             CursorUpdateServer packet = new CursorUpdateServer(collaboratorID, position, destroyCursor);
-
             byte[] serializedPacket = packet.Serialize();
 
-            foreach (var item in clients)
-            {
-                if (item?.TcpClient is null)
-                {
-                    continue;
-                }
-
-                if (item.ID == collaboratorID)
-                {
-                    continue;
-                }
-
-                NetworkStream stream = item.TcpClient.GetStream();
-                try
-                {
-                    stream.Write(serializedPacket, 0, serializedPacket.Length);
-                }
-                catch (IOException)
-                {
-                    logger.PrintError("Collaborator connection closed");
-                }
-            }
+            SendPacketAll(serializedPacket, collaboratorID);
         }
 
         private void ClientConnected(IAsyncResult ar)
         {
             TcpClient newClient;
+
             try
             {
                 newClient = listener.EndAcceptTcpClient(ar);

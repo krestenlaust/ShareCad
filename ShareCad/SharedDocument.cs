@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Timers;
 using System.Windows;
@@ -11,8 +12,13 @@ using System.Xml;
 using Ptc.Controls;
 using Ptc.Controls.Core;
 using Ptc.Controls.Worksheet;
+using Ptc.PersistentData;
+using Ptc.PersistentDataObjects;
+using Ptc.Serialization;
 using Ptc.Wpf;
 using ShareCad.Networking;
+using ShareCad.Networking.Packets;
+using Path = System.IO.Path;
 
 namespace ShareCad
 {
@@ -28,13 +34,17 @@ namespace ShareCad
         private const double Update_DebounceTimeout = 200;
 
         public readonly EngineeringDocument Document;
-        private readonly IWorksheetViewModel viewModel;
-
         public readonly NetworkClient NetworkClient;
+
+        private readonly Dictionary<byte, CollaboratorCrosshair> collaboratorCrosshairs = new Dictionary<byte, CollaboratorCrosshair>();
+        private readonly Dictionary<int, string> fileByID = new Dictionary<int, string>();
+        private readonly IWorksheetViewModel viewModel;
         private readonly Logging.Logger log;
         private readonly Timer networkPushDebounce = new Timer();
-        private bool ignoreFirstNetworkPush = true;
+        private bool ignoreFirstNetworkPush = false;
         private bool ignoreNextCalculateChange = false;
+        private Point previousCursorPosition;
+        private bool previousConnectedStatus;
 
         /// <summary>
         /// Updates visual indicators of connection, and returns the connection status.
@@ -53,9 +63,8 @@ namespace ShareCad
                 return previousConnectedStatus;
             }
         }
-        private bool previousConnectedStatus;
 
-        /// <summary>          
+        /// <summary>
         /// Hooks the EngineeringDocument to enable sharing functionality.
         /// Can be initialized both before and after established connection.
         /// </summary>
@@ -73,10 +82,11 @@ namespace ShareCad
             Document.KeyUp += MousePositionMightveChanged;
             Document.MouseMove += MousePositionMightveChanged;
             Document.OnDispose += Document_OnDispose;
-            
+
             client.OnWorksheetUpdate += (doc) => Document.Dispatcher.Invoke(() => UpdateWorksheet(doc));
             client.OnCollaboratorCursorUpdate += UpdateLocalCursorPosition;
             client.OnDisconnected += () => Document.Dispatcher.Invoke(() => UpdateConnectionStatus(false));
+            client.OnXamlPackageUpdate += Client_OnXamlPackageUpdate;
 
             networkPushDebounce.Stop();
             networkPushDebounce.Elapsed += delegate (object source, ElapsedEventArgs e)
@@ -107,11 +117,8 @@ namespace ShareCad
                     UpdateConnectionStatus(NetworkClient.HostClient.Connected);
                 }
             });
-        }
-
-        private void Document_OnDispose(IEngineeringDocument obj)
-        {
-            StopSharing();
+            
+            RemoteUpdateCursorPosition();
         }
 
         /// <summary>
@@ -134,6 +141,78 @@ namespace ShareCad
             {
                 Document.DocumentTabIcon = "";
             });
+        }
+
+        public Stream LoadAsset(int id)
+        {
+            log.Print($"Loaded asset with ID {id}");
+
+            if (!fileByID.TryGetValue(id, out string filepath))
+            {
+                return null;
+            }
+
+            try
+            {
+                return File.Open(filepath, FileMode.Open, FileAccess.Read);
+            }
+            catch (Exception ex)
+            {
+                log.PrintError(ex);
+            }
+
+            return null;
+        }
+
+        public void NotifyStoreAsset(int id, string filePath)
+        {
+            log.Print("Notified");
+
+            // Store asset
+            StoreAsset(id, filePath);
+
+            // Open file for streaming
+            byte[] assetData = File.ReadAllBytes(filePath);
+
+            var packet = new SerializedXamlPackageUpdate(id, assetData);
+            NetworkClient.SendAsset(packet);
+        }
+
+        public void Client_OnXamlPackageUpdate(int id, byte[] serializedXamlPackage)
+        {
+            // Save serialized package to file in temp folder.
+            string filepath = Path.GetTempFileName();
+
+            using (Stream stream = File.Open(filepath, FileMode.OpenOrCreate, FileAccess.Write))
+            {
+                stream.Write(serializedXamlPackage, 0, serializedXamlPackage.Length);
+                stream.Flush();
+            }   
+
+            StoreAsset(id, filepath);
+        }
+
+        private void StoreAsset(int id, string filePath)
+        {
+            log.Print($"Stored asset with ID {id} at {filePath}");
+            if (fileByID.TryGetValue(id, out string oldFilePath))
+            {
+                try
+                {
+                    File.Delete(oldFilePath);
+                }
+                catch (Exception ex)
+                {
+                    log.PrintError(ex);
+                }
+            }
+
+            fileByID[id] = filePath;
+        }
+
+        private void Document_OnDispose(IEngineeringDocument obj)
+        {
+            StopSharing();
         }
 
         /// <summary>
@@ -162,7 +241,7 @@ namespace ShareCad
 
             var regionsToSerialize = worksheetData.WorksheetContent.RegionsToSerialize;
 
-            XmlDocument xml = ManipulateWorksheet.SerializeRegions(regionsToSerialize, Document);
+            XmlDocument xml = SerializeRegions(regionsToSerialize, Document);
 
             // TODO: transmit data.
             NetworkClient.SendDocument(xml);
@@ -191,10 +270,12 @@ namespace ShareCad
                 // Deselect controls that aren't capable of being shared.
                 foreach (var item in viewModel.ActiveOrSelectedItems)
                 {
+                    /*
                     if (item is Ptc.Controls.Text.TextRegion)
                     {
                         viewModel.ToggleItemSelection(item, false);
-                    }
+                    }*/
+
                 }
 
                 // Deselect current item if any.
@@ -211,23 +292,7 @@ namespace ShareCad
             }
 
             ignoreNextCalculateChange = true;
-            ManipulateWorksheet.DeserializeAndApplySection(Document, doc.OuterXml);
-
-            /*
-            try
-            {
-                viewModel.PageManager.ScrollToPageIfNeeded(viewModel.Pages[currentPageNumber]);
-            }
-            catch (System.Exception e)
-            {
-                log.PrintError("cant scroll");
-            }*/
-
-            /*
-            if (!(currentItem is null))
-            {
-                viewModel.PageManager.VisualHelper.BringIntoView(currentItem);
-            }*/
+            DeserializeAndApplySection(Document, doc.OuterXml);
 
             log.Print("Your worksheet has been updated");
         }
@@ -252,20 +317,10 @@ namespace ShareCad
             }
         }
 
-        /// <summary>
-        /// Stops sharing.
-        /// </summary>
-        ~SharedDocument()
-        {
-            StopSharing();
-        }
-
         private void MousePositionMightveChanged(object sender, System.Windows.Input.InputEventArgs e)
         {
             RemoteUpdateCursorPosition();
         }
-
-        private Point previousCursorPosition;
 
         public void RemoteUpdateCursorPosition()
         {
@@ -282,8 +337,6 @@ namespace ShareCad
             NetworkClient.SendCursorPosition(Document.InsertionPoint);
             previousCursorPosition = Document.InsertionPoint;
         }
-
-        private readonly Dictionary<byte, CollaboratorCrosshair> collaboratorCrosshairs = new Dictionary<byte, CollaboratorCrosshair>();
 
         public void UpdateLocalCursorPosition(byte ID, Point position, bool destroyCursor)
         {
@@ -307,6 +360,85 @@ namespace ShareCad
 
                 crosshair.MoveCrosshair(position);
             });
+        }
+
+        private void DeserializeAndApplySection(EngineeringDocument engineeringDocument, string xaml)
+        {
+            var currentWorksheetData = engineeringDocument.Worksheet.GetWorksheetData();
+
+            if (engineeringDocument is null)
+            {
+                return;
+            }
+
+            worksheetRegionCollectionSerializer regionCollectionSerializer = new worksheetRegionCollectionSerializer();
+
+            IWorksheetPersistentData worksheetData = new WorksheetPersistentData()
+            {
+                DisplayGrid = currentWorksheetData.DisplayGrid,
+                DisplayHFGrid = currentWorksheetData.DisplayHFGrid,
+                GridSize = currentWorksheetData.GridSize,
+                LayoutSize = currentWorksheetData.LayoutSize,
+                MarginType = currentWorksheetData.MarginType,
+                OleObjectAutoResize = currentWorksheetData.OleObjectAutoResize,
+                PageOrientation = currentWorksheetData.PageOrientation,
+                PlotBackgroundType = currentWorksheetData.PlotBackgroundType,
+                ShowIOTags = currentWorksheetData.ShowIOTags
+            };
+
+            using (CustomMcdxDeserializer mcdxDeserializer =
+                new CustomMcdxDeserializer(
+                    new CustomWorksheetSectionDeserializationStrategy(
+                        worksheetData.WorksheetContent,
+                        engineeringDocument.MathFormat,
+                        engineeringDocument.LabeledIdFormat
+                        ),
+                    engineeringDocument.DocumentSerializationHelper,
+                    regionCollectionSerializer,
+                    true,
+                    LoadAsset
+                    )
+                )
+            {
+                mcdxDeserializer.Deserialize(xaml);
+                var deserializedRegions = mcdxDeserializer.DeserializedRegions;
+
+                engineeringDocument.DocumentSerializationHelper.MainRegions = deserializedRegions;
+
+                ((WorksheetControl)engineeringDocument.Worksheet).ApplyWorksheetDataLite(worksheetData);
+            }
+        }
+
+        private XmlDocument SerializeRegions(IDictionary<UIElement, Point> serializableRegions, ISerializationHelper serializationHelper)
+        {
+            var regionCollectionSerializer = new worksheetRegionCollectionSerializer();
+
+            var mcdxSerializer = new CustomMcdxSerializer(
+                new CustomWorksheetSectionSerializationStrategy(
+                    serializableRegions,
+                    () => new worksheetRegionType()
+                    ),
+                serializationHelper,
+                regionCollectionSerializer,
+                null,
+                true,
+                NotifyStoreAsset);
+
+            serializationHelper.Reset();
+            mcdxSerializer.Serialize();
+
+            return mcdxSerializer.XmlContentDocument;
+        }
+
+        private XmlDocument SerializeRegions(IDictionary<UIElement, Point> serializableRegions, EngineeringDocument engineeringDocument) =>
+            SerializeRegions(serializableRegions, engineeringDocument.DocumentSerializationHelper);
+
+        /// <summary>
+        /// Stops sharing.
+        /// </summary>
+        ~SharedDocument()
+        {
+            StopSharing();
         }
 
         /*

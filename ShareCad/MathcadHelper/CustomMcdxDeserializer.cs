@@ -32,15 +32,25 @@ namespace ShareCad
         private readonly IRegionCollectionSerializer _regionCollectionSerializer;
         private readonly string _worksheetNodeName;
         private readonly Stream _sourceStream;
+        private readonly LoadAsset GetAsset;
         private XmlDocument _xmlContentDocument;
 
-        public CustomMcdxDeserializer(IDeserializationStrategy deserializationStrategy, ISerializationHelper serializationHelper, IRegionCollectionSerializer regionCollectionSerializer, bool useOverrides)
+        public delegate Stream LoadAsset(int id);
+
+        public CustomMcdxDeserializer(
+            IDeserializationStrategy deserializationStrategy, 
+            ISerializationHelper serializationHelper, 
+            IRegionCollectionSerializer regionCollectionSerializer, 
+            bool useOverrides,
+            LoadAsset loadAsset)
         {
             _deserializationStrategy = deserializationStrategy;
             _serializationHelper = serializationHelper;
             _regionCollectionSerializer = regionCollectionSerializer;
             _worksheetNodeName = regionCollectionSerializer.RootNodeName;
             UseOverrides = useOverrides;
+
+            GetAsset = loadAsset;
         }
 
         public void Deserialize(Stream stream)
@@ -116,33 +126,45 @@ namespace ShareCad
             _deserializationStrategy.DeserializeRegionsEpilog(xmlContentDocument);
         }
 
-        public void CustomUnpackFlowDocument(ref FlowDocument flowDocument, Stream sourceStream)
+        public void UnpackFlowDocument(ref FlowDocument flowDocument, string itemIdRef)
         {
             if (flowDocument is null)
             {
                 flowDocument = new FlowDocument();
             }
 
-            TextRange textRangeFromStartToEnd = TextRegionSerializationHelper.GetTextRangeFromStartToEnd(flowDocument);
-            textRangeFromStartToEnd.Load(sourceStream, DataFormats.XamlPackage);
+            if (!int.TryParse(itemIdRef, out int itemID))
+            {
+                itemID = itemIdRef.GetHashCode();
+            }
+
+            try
+            {
+                using (Stream sourceStream = GetAsset(itemID))
+                {
+                    TextRange textRangeFromStartToEnd = TextRegionSerializationHelper.GetTextRangeFromStartToEnd(flowDocument);
+                    textRangeFromStartToEnd.Load(sourceStream, DataFormats.XamlPackage);
+                }
+            }
+            catch (ArgumentNullException)
+            {
+                Console.Error.WriteLine("GetAsset returned null");
+            }
         }
 
-        public void UnpackFlowDocument(ref FlowDocument flowDocument, string itemIdRef)
+        public void OldUnpackFlowDocument(ref FlowDocument flowDocument, string itemIdRef)
         {
             // TODO: Support recieving flowdocuments.
+            if (flowDocument == null)
+            {
+                flowDocument = new FlowDocument();
+            }
 
             //Stream sourceStream = PackageOperationsProvider.GetSourceStream(this.PackagePart, itemIdRef);
-            if (_sourceStream != null)
+            using (Stream srcStream = File.Open(CustomMcdxSerializer.TempFile, FileMode.Open, FileAccess.Read))
             {
-                //using (sourceStream)
-                //{
-                if (flowDocument == null)
-                {
-                    flowDocument = new FlowDocument();
-                }
-                System.Windows.Documents.TextRange textRangeFromStartToEnd = TextRegionSerializationHelper.GetTextRangeFromStartToEnd(flowDocument);
-                textRangeFromStartToEnd.Load(_sourceStream, DataFormats.XamlPackage);
-                //}
+                TextRange textRangeFromStartToEnd = TextRegionSerializationHelper.GetTextRangeFromStartToEnd(flowDocument);
+                textRangeFromStartToEnd.Load(srcStream, DataFormats.XamlPackage);
             }
         }
 

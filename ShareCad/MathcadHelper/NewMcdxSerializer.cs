@@ -1,5 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Packaging;
 using System.Windows;
@@ -7,68 +11,76 @@ using System.Windows.Documents;
 using System.Windows.Media.Imaging;
 using System.Xml;
 using System.Xml.Schema;
-using Ptc;
-using Ptc.Controls.Core.Serialization;
 using Ptc.IO;
 using Ptc.PersistentData;
 using Ptc.PersistentDataObjects;
 using Ptc.Serialization;
 using Ptc.Wpf;
 using Ptc.Xml;
+using Ptc.Controls.Core.Serialization;
+using Ptc;
 
-namespace ShareCad
+namespace ShareCad.MathcadHelper
 {
-    public class CustomMcdxSerializer : IS11NProvider, IBaseS11NProvider
+	public class McdxSerializer : IS11NProvider, IBaseS11NProvider
 	{
-		private readonly StoreAsset SetAsset;
-		public delegate void StoreAsset(int ID, string filePath);
-
-		public CustomMcdxSerializer(
-			ISerializationStrategy serializationStrategy, 
-			ISerializationHelper helper, 
-			IRegionCollectionSerializer regionCollectionSerializer, 
-			Action<XmlSchemaException> onWriteValidationFailed, 
-			bool useOverrides,
-			StoreAsset storeAsset)
+		public McdxSerializer(PackagePart part, ISerializationStrategy serializationStrategy, ISerializationHelper helper, IRegionCollectionSerializer regionCollectionSerializer, Action<XmlSchemaException> onWriteValidationFailed, bool useOverrides)
 		{
-			_serializationStrategy = serializationStrategy;
-			_worksheetNodeName = regionCollectionSerializer.RootNodeName;
-			_regionCollectionSerializer = regionCollectionSerializer;
-			_serializationHelper = helper;
-			_onWriteValidationFailed = onWriteValidationFailed;
-			UseOverrides = useOverrides;
-
-			SetAsset = storeAsset;
+			if (part == null)
+			{
+				throw new ArgumentNullException("part");
+			}
+			this._serializationStrategy = serializationStrategy;
+			this._worksheetNodeName = regionCollectionSerializer.RootNodeName;
+			this._regionCollectionSerializer = regionCollectionSerializer;
+			this._serializationHelper = helper;
+			this._packagePart = part;
+			this._onWriteValidationFailed = onWriteValidationFailed;
+			this.UseOverrides = useOverrides;
 		}
 
-		public void Serialize()
+		public void Serialize(PackagePart part, bool useTempFile = false)
 		{
 			XmlContentDocument = new XmlDocument();
 
-            //InitializeDocument(XmlContentDocument);
 			SpiritResolver.InitializeDocument(XmlContentDocument, SchemasManager.Worksheet50);
 
 			BuildDocumentXml(_regionCollectionSerializer);
 			XmlContentDocument.Validate(new ValidationEventHandler(OnWriteValidationFailedHandler));
+
+			//
+
+			if (useTempFile)
+			{
+				SerializationHelperUtils.SaveToPartUsingTemporaryFile(delegate (string tempFile)
+				{
+					this.XmlContentDocument.Save(tempFile);
+				}, part, null);
+				return;
+			}
+
+			using (Stream stream = part.GetStream(FileMode.Create))
+			{
+				this.XmlContentDocument.Save(stream);
+			}
 		}
 
 		private void OnWriteValidationFailedHandler(object sender, ValidationEventArgs args)
-        {
-            if (_onWriteValidationFailed == null)
-            {
-                throw args.Exception;
-            }
+		{
+			if (this._onWriteValidationFailed != null)
+			{
+				this._onWriteValidationFailed(args.Exception);
+				return;
+			}
+			throw args.Exception;
+		}
 
-            _onWriteValidationFailed(args.Exception);
-        }
-
-        public static string PackImage(PackagePart sourcePackagePart, ISerializationHelper serializationHelper, Uri imageSourceUri, byte[] imageSourceStreamHash, BitmapSource image, string uniqueImageName, string imageExtension)
+		public static string PackImage(PackagePart sourcePackagePart, ISerializationHelper serializationHelper, Uri imageSourceUri, byte[] imageSourceStreamHash, BitmapSource image, string uniqueImageName, string imageExtension)
 		{
 			if (sourcePackagePart == null)
 			{
 				throw new NullReferenceException("package part doesn't exist");
 			}
-
 			byte[] imageHash = ImageUtils.GetImageHash(image);
 			Func<Pair<string, Uri>> getExistingPartRelationshipId = () => serializationHelper.GetImagePath(imageExtension, imageHash);
 			Action<string, PackagePart> cacheRelationshipIdForNewPart = delegate (string relationshipId, PackagePart imagePart)
@@ -85,7 +97,6 @@ namespace ShareCad
 			{
 				throw new NullReferenceException("package part doesn't exist");
 			}
-
 			PackagePart packagePart = PackageOperationsProvider.Instance.AddPartToPackage(sourcePackagePart.Package, pathInPackage, mimeType);
 			using (Stream stream = packagePart.GetStream(FileMode.Create))
 			{
@@ -100,7 +111,7 @@ namespace ShareCad
 
 		public string PackImage(ImagePackagingInformation pictureInfo)
 		{
-			return PackImage(_packagePart, _serializationHelper, pictureInfo.ImageSourceUri, pictureInfo.ImageOriginalStreamHash, pictureInfo.Image, pictureInfo.ImageName, pictureInfo.ImageExtension);
+			return McdxSerializer.PackImage(this._packagePart, this._serializationHelper, pictureInfo.ImageSourceUri, pictureInfo.ImageOriginalStreamHash, pictureInfo.Image, pictureInfo.ImageName, pictureInfo.ImageExtension);
 		}
 
 		public string PackExternalObject(string sourceFileName, string objectUniqueId, ExternalObjectType objectType)
@@ -123,20 +134,20 @@ namespace ShareCad
 				default:
 					throw new NotImplementedException("Unsupported external object type: " + objectType);
 			}
-			return PackFile(_packagePart, sourceFileName, string.Format(format, objectUniqueId), relationshipUri, mimeType);
+			return McdxSerializer.PackFile(this._packagePart, sourceFileName, string.Format(format, objectUniqueId), relationshipUri, mimeType);
 		}
 
 		public string PackIncludedWorksheet(string fullFilePath, DateTime lastSavedDate, string uniqueId, Func<Package, string, PackagePart> writePartToPackage)
 		{
+			DebugTools.DevAssert(!string.IsNullOrEmpty(fullFilePath), null, new object[0]);
 			Pair<string, DateTime> fullFilePathAndTime = new Pair<string, DateTime>(fullFilePath, lastSavedDate);
-			Func<Pair<string, Uri>> getExistingPartRelationshipId = () => Helper.GetCachedWorksheetPath(fullFilePathAndTime);
+			Func<Pair<string, Uri>> getExistingPartRelationshipId = () => this.Helper.GetCachedWorksheetPath(fullFilePathAndTime);
 			Action<string, PackagePart> cacheRelationshipIdForNewPart = delegate (string relationshipId, PackagePart cachedPart)
 			{
-				Helper.AddCachedPartPath(fullFilePathAndTime, new Pair<string, Uri>(relationshipId, cachedPart.Uri));
+				this.Helper.AddCachedPartPath(fullFilePathAndTime, new Pair<string, Uri>(relationshipId, cachedPart.Uri));
 			};
-
-			Func<PackagePart> writeNewPartToPackage = () => writePartToPackage(PackagePart.Package, uniqueId);
-			return PackageOperationsProvider.PackPartAndGetId(PackagePart, getExistingPartRelationshipId, cacheRelationshipIdForNewPart, writeNewPartToPackage, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/include");
+			Func<PackagePart> writeNewPartToPackage = () => writePartToPackage(this.PackagePart.Package, uniqueId);
+			return PackageOperationsProvider.PackPartAndGetId(this.PackagePart, getExistingPartRelationshipId, cacheRelationshipIdForNewPart, writeNewPartToPackage, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/include");
 		}
 
 		public XmlDocument XmlContentDocument { get; private set; }
@@ -147,7 +158,7 @@ namespace ShareCad
 		{
 			get
 			{
-				return _packagePart;
+				return this._packagePart;
 			}
 		}
 
@@ -155,7 +166,7 @@ namespace ShareCad
 		{
 			get
 			{
-				return _serializationHelper;
+				return this._serializationHelper;
 			}
 		}
 
@@ -167,24 +178,9 @@ namespace ShareCad
 			}
 		}
 
-		public static string TempFile;
-
 		public string PackFlowDocument(FlowDocument flowDocument, string regionId)
 		{
-			TempFile = Path.GetTempFileName();
-            using (Stream stream = File.Open(TempFile, FileMode.Create, FileAccess.ReadWrite))
-            {
-				TextRegionSerializationHelper.GetTextRangeFromStartToEnd(flowDocument).Save(stream, DataFormats.XamlPackage);
-				stream.Flush();
-			}
-
-			SetAsset(int.Parse(regionId), TempFile);
-
-			// TODO: Supporting sending flowdocuments.
-			return regionId;
-
-			/*
-			PackagePart packagePart = PackagePart;
+			PackagePart packagePart = this.PackagePart;
 			PackagePart packagePart2 = PackageOperationsProvider.Instance.AddPartToPackage(packagePart.Package, string.Format("/mathcad/xaml/FlowDocument{0}.{1}", regionId, DataFormats.XamlPackage), "application/zip");
 			PackageRelationship packageRelationship = packagePart.CreateRelationship(packagePart2.Uri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/flowDocument");
 			using (Stream stream = packagePart2.GetStream(FileMode.Create, FileAccess.ReadWrite))
@@ -192,12 +188,12 @@ namespace ShareCad
 				TextRegionSerializationHelper.SaveTextRangeAsXamlPackage(TextRegionSerializationHelper.GetTextRangeFromStartToEnd(flowDocument), stream);
 				stream.Flush();
 			}
-			return packageRelationship.Id;*/
+			return packageRelationship.Id;
 		}
 
 		public string PackProtectedPart(Stream content, string uniqueId, string regionType)
 		{
-			PackagePart packagePart = PackagePart;
+			PackagePart packagePart = this.PackagePart;
 			PackagePart packagePart2 = PackageOperationsProvider.Instance.AddPartToPackage(packagePart.Package, string.Format("/mathcad/ProtectedData/{0}{1}.dat", regionType, uniqueId), "application/octet-stream");
 			PackageRelationship packageRelationship = packagePart.CreateRelationship(packagePart2.Uri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/ProtectedData");
 			using (Stream stream = packagePart2.GetStream(FileMode.Create, FileAccess.ReadWrite))
@@ -210,7 +206,7 @@ namespace ShareCad
 
 		private void BuildDocumentXml(IRegionCollectionSerializer regionCollectionSerializer)
 		{
-			IList<IRegionType> regions = _serializationStrategy.GetRegions(this);
+			IList<IRegionType> regions = this._serializationStrategy.GetRegions(this);
 			regions.Each(delegate (IRegionType item)
 			{
 				if (item.S11NProvider == null)
@@ -218,29 +214,29 @@ namespace ShareCad
 					item.S11NProvider = this;
 					return;
 				}
-
 				IS11NProvider s11NProvider = item.S11NProvider;
 				while (s11NProvider is IHasS11NProvider)
 				{
 					s11NProvider = (s11NProvider as IHasS11NProvider).S11NProvider;
 				}
+				DebugTools.DevAssert(s11NProvider == this, null, new object[0]);
 			});
 			regionCollectionSerializer.Regions = regions;
-			regionCollectionSerializer.Serialize(XmlContentDocument, UseOverrides);
-			_serializationStrategy.SerializeRegionsEpilog(XmlContentDocument);
-            
-			if (SpiritResolver.WorksheetRootNode(XmlContentDocument, NameSpaceManager, _worksheetNodeName) is XmlElement xmlElement)
-            {
-                xmlElement.SetAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
-                xmlElement.SetAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
-                xmlElement.SetAttribute("xmlns:ve", "http://schemas.openxmlformats.org/markup-compatibility/2006");
-                xmlElement.SetAttribute("xmlns:r", "http://schemas.openxmlformats.org/officeDocument/2006/relationships");
-                xmlElement.SetAttribute("xmlns:ws", "http://schemas.mathsoft.com/worksheet50");
-                xmlElement.SetAttribute("xmlns:ml", "http://schemas.mathsoft.com/math50");
-                xmlElement.SetAttribute("xmlns:u", "http://schemas.mathsoft.com/units10");
-                xmlElement.SetAttribute("xmlns:p", "http://schemas.mathsoft.com/provenance10");
-            }
-        }
+			regionCollectionSerializer.Serialize(this.XmlContentDocument, this.UseOverrides);
+			this._serializationStrategy.SerializeRegionsEpilog(this.XmlContentDocument);
+			XmlElement xmlElement = SpiritResolver.WorksheetRootNode(this.XmlContentDocument, this.NameSpaceManager, this._worksheetNodeName) as XmlElement;
+			if (xmlElement != null)
+			{
+				xmlElement.SetAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
+				xmlElement.SetAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
+				xmlElement.SetAttribute("xmlns:ve", "http://schemas.openxmlformats.org/markup-compatibility/2006");
+				xmlElement.SetAttribute("xmlns:r", "http://schemas.openxmlformats.org/officeDocument/2006/relationships");
+				xmlElement.SetAttribute("xmlns:ws", "http://schemas.mathsoft.com/worksheet50");
+				xmlElement.SetAttribute("xmlns:ml", "http://schemas.mathsoft.com/math50");
+				xmlElement.SetAttribute("xmlns:u", "http://schemas.mathsoft.com/units10");
+				xmlElement.SetAttribute("xmlns:p", "http://schemas.mathsoft.com/provenance10");
+			}
+		}
 
 		private readonly Action<XmlSchemaException> _onWriteValidationFailed;
 

@@ -12,6 +12,7 @@ using System.Windows.Media.Imaging;
 using System.IO;
 using Ptc.Wpf;
 using Ptc.Controls;
+using System.Windows.Media;
 
 namespace ShareCad
 {
@@ -34,6 +35,10 @@ namespace ShareCad
                 {
                     MaxHeight = 32,
                     MaxWidth = 32,
+                    HorizontalAlignment = HorizontalAlignment.Stretch,
+                    Opacity = 0.3f,
+                    SnapsToDevicePixels = true,
+                    AllowDrop = true,
                     Source = new BitmapImage(new Uri(source, UriKind.RelativeOrAbsolute))
                 };
             }
@@ -50,8 +55,10 @@ namespace ShareCad
                 Header = header,
                 ImagePosition = eButtonImagePosition.Top,
                 RenderSize = new Size(48, 68),
+                MinHeight = 68,
                 Image = image,
-                ImageSmall = image
+                ImageSmall = image,
+                Foreground = new SolidColorBrush(Color.FromArgb(255, 141, 141, 141))
             };
 
             if (clickEvent is null)
@@ -63,11 +70,21 @@ namespace ShareCad
             return button;
         }
 
-        private class LiveShare_GeneralRibbonBar : RibbonBar
+        private class StylisedRibbonBar : RibbonBar
         {
-            public LiveShare_GeneralRibbonBar()
+            public StylisedRibbonBar()
             {
-                Height = 85;
+                Height = 87;
+                Margin = new Thickness(0, -1, 1, -1);
+                VerticalAlignment = VerticalAlignment.Stretch;
+                HorizontalAlignment = HorizontalAlignment.Center;
+            }
+        }
+
+        private class LiveShare_GeneralRibbonBar : StylisedRibbonBar
+        {
+            public LiveShare_GeneralRibbonBar() : base()
+            {
                 Header = "General";
 
                 ButtonPanel panel = CreateButtonPanel();
@@ -129,11 +146,10 @@ namespace ShareCad
             }
         }
 
-        private class LiveShare_CollaboratorManager : RibbonBar
+        private class LiveShare_CollaboratorManager : StylisedRibbonBar
         {
-            public LiveShare_CollaboratorManager()
+            public LiveShare_CollaboratorManager() : base()
             {
-                Height = 85;
                 Header = "Collaborators";
 
                 ButtonPanel panel = CreateButtonPanel();

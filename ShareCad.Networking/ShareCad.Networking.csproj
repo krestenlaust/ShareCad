@@ -18,7 +18,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>..\..\..\..\..\..\Program Files\PTC\Mathcad Prime 4.0\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -69,6 +69,8 @@
     <Compile Include="NetworkClient.cs" />
     <Compile Include="NetworkManager.cs" />
     <Compile Include="Packet.cs" />
+    <Compile Include="Packets\AssetPacket.cs" />
+    <Compile Include="Packets\SerializedXamlPackageUpdate.cs" />
     <Compile Include="Packets\CursorUpdateClient.cs" />
     <Compile Include="Packets\CursorUpdateServer.cs" />
     <Compile Include="Packets\DocumentRequest.cs" />

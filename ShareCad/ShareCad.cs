@@ -198,6 +198,23 @@ namespace ShareCad
             NewDocumentAction = null;
         }
 
+        private static string GetLocalIPAddress()
+        {
+            var host = Dns.GetHostEntry(Dns.GetHostName());
+
+            IPAddress recentIP = IPAddress.Loopback;
+
+            foreach (var ip in host.AddressList)
+            {
+                if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                {
+                    recentIP = ip;
+                }
+            }
+
+            return recentIP.ToString();
+        }
+
         public static SharedDocument StartSharedDocument(EngineeringDocument document)
         {
             if (NetworkManager is null)
@@ -207,6 +224,8 @@ namespace ShareCad
 
             int port = NetworkManager.StartServer();
             Log.Print($"Started server at port {port}");
+
+            MessageBoxManager.ShowInfo($"Shared document on {GetLocalIPAddress()}:{port}", "IP Address and port");
 
             return ConnectSharedDocument(document, new IPEndPoint(IPAddress.Loopback, port));
         }
@@ -232,6 +251,11 @@ namespace ShareCad
         private static void Client_OnConnectFinished(NetworkClient.ConnectStatus obj)
         {
             Log.Print("Connection finished: " + obj);
+
+            if (obj == NetworkClient.ConnectStatus.Established)
+            {
+                
+            }
         }
 
         private Ribbon GetRibbon()
