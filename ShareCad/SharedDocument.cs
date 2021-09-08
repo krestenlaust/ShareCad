@@ -31,7 +31,8 @@ namespace ShareCad
         /// <summary>
         /// The least amount of time passing, from the worksheet is changed to the server is notified.
         /// </summary>
-        private const double Update_DebounceTimeout = 200;
+        private const double Update_DebounceTimeoutCalculation = 200;
+        private const double Update_DebounceTimeoutKeypress = 700;
 
         public readonly EngineeringDocument Document;
         public readonly NetworkClient NetworkClient;
@@ -45,6 +46,7 @@ namespace ShareCad
         private bool ignoreNextCalculateChange = false;
         private Point previousCursorPosition;
         private bool previousConnectedStatus;
+        private readonly CustomMcdxSerializer customMcdxSerializer;
 
         /// <summary>
         /// Updates visual indicators of connection, and returns the connection status.
@@ -77,6 +79,8 @@ namespace ShareCad
 
             Document = engineeringDocument;
             viewModel = engineeringDocument.GetViewModel();
+
+            customMcdxSerializer = new CustomMcdxSerializer(Document.DocumentSerializationHelper, StoreAsset);
 
             Document.Worksheet.PropertyChanged += PropertyChanged;
             Document.KeyUp += MousePositionMightveChanged;
@@ -187,7 +191,7 @@ namespace ShareCad
             {
                 stream.Write(serializedXamlPackage, 0, serializedXamlPackage.Length);
                 stream.Flush();
-            }   
+            }
 
             StoreAsset(id, filepath);
         }
@@ -221,7 +225,7 @@ namespace ShareCad
         /// <param name="connected"></param>
         private void UpdateConnectionStatus(bool connected)
         {
-            Document.DocumentTabIcon = System.IO.Path.GetFullPath(connected ? BootlegResourceManager.Icons.ConnectIcon : BootlegResourceManager.Icons.NoConnectionIcon);
+            Document.DocumentTabIcon = Path.GetFullPath(connected ? BootlegResourceManager.Icons.ConnectIcon : BootlegResourceManager.Icons.NoConnectionIcon);
         }
 
         private void PushDocument()
@@ -256,6 +260,8 @@ namespace ShareCad
         {
             ignoreFirstNetworkPush = true;
 
+            (IList<IRegionPersistentData> regionData, IWorksheetPersistentData worksheetData) = Deserialize(Document, doc);
+
             // den region man skriver i lige nu.
             var currentItem = viewModel.ActiveItem;
 
@@ -267,6 +273,8 @@ namespace ShareCad
                 // Select every item on whiteboard.
                 viewModel.HandleSelectAll();
 
+                //viewModel.SelectItem(regionData.First());
+
                 // Deselect controls that aren't capable of being shared.
                 foreach (var item in viewModel.ActiveOrSelectedItems)
                 {
@@ -275,7 +283,6 @@ namespace ShareCad
                     {
                         viewModel.ToggleItemSelection(item, false);
                     }*/
-
                 }
 
                 // Deselect current item if any.
@@ -292,13 +299,39 @@ namespace ShareCad
             }
 
             ignoreNextCalculateChange = true;
-            DeserializeAndApplySection(Document, doc.OuterXml);
+
+            ApplyMainSection(Document, regionData, worksheetData);
 
             log.Print("Your worksheet has been updated");
         }
 
+        private Control previousElement;
+
         private void PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
+            log.Print(e.PropertyName);
+
+            if (e.PropertyName == "CurrentElement")
+            {
+                WorksheetControl senderControl = (WorksheetControl)sender;
+                Control currentElement = senderControl.ActiveItem as Control;
+
+                if (previousElement is null)
+                {
+                    if (!(currentElement is null))
+                    {
+                        currentElement.KeyUp += NewElement_KeyUp;
+                    }
+                }
+                else if (currentElement is null && !(previousElement is null))
+                {
+                    previousElement.KeyUp -= NewElement_KeyUp;
+                }
+
+                previousElement = currentElement;
+            }
+
+            
             if (e.PropertyName == "IsCalculating")
             {
                 if (ignoreNextCalculateChange)
@@ -311,9 +344,25 @@ namespace ShareCad
                 // refresh connected status.
                 if (isConnected)
                 {
-                    networkPushDebounce.Interval = Update_DebounceTimeout;
+                    networkPushDebounce.Interval = Update_DebounceTimeoutCalculation;
                     networkPushDebounce.Start();
                 }
+            }
+        }
+
+        private void NewElement_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            log.Print(e.Key);
+
+            if (e.Key == System.Windows.Input.Key.Insert)
+            {
+                throw new Exception();
+            }
+
+            if (isConnected)
+            {
+                //networkPushDebounce.Interval = Update_DebounceTimeoutKeypress;
+                //networkPushDebounce.Start();
             }
         }
 
@@ -362,16 +411,16 @@ namespace ShareCad
             });
         }
 
-        private void DeserializeAndApplySection(EngineeringDocument engineeringDocument, string xaml)
+        private (IList<IRegionPersistentData>, IWorksheetPersistentData) Deserialize(EngineeringDocument currentDocument, XmlDocument xmlDoc)
         {
-            var currentWorksheetData = engineeringDocument.Worksheet.GetWorksheetData();
-
-            if (engineeringDocument is null)
+            if (currentDocument is null)
             {
-                return;
+                throw new ArgumentNullException(nameof(currentDocument));
             }
 
-            worksheetRegionCollectionSerializer regionCollectionSerializer = new worksheetRegionCollectionSerializer();
+            var currentWorksheetData = currentDocument.Worksheet.GetWorksheetData();
+
+            IRegionCollectionSerializer regionCollectionSerializer = new worksheetRegionCollectionSerializer();
 
             IWorksheetPersistentData worksheetData = new WorksheetPersistentData()
             {
@@ -386,33 +435,55 @@ namespace ShareCad
                 ShowIOTags = currentWorksheetData.ShowIOTags
             };
 
-            using (CustomMcdxDeserializer mcdxDeserializer =
-                new CustomMcdxDeserializer(
+            CustomMcdxDeserializer mcdxDeserializer = new CustomMcdxDeserializer(
                     new CustomWorksheetSectionDeserializationStrategy(
                         worksheetData.WorksheetContent,
-                        engineeringDocument.MathFormat,
-                        engineeringDocument.LabeledIdFormat
+                        currentDocument.MathFormat,
+                        currentDocument.LabeledIdFormat
                         ),
-                    engineeringDocument.DocumentSerializationHelper,
+                    currentDocument.DocumentSerializationHelper,
                     regionCollectionSerializer,
                     true,
                     LoadAsset
-                    )
-                )
-            {
-                mcdxDeserializer.Deserialize(xaml);
-                var deserializedRegions = mcdxDeserializer.DeserializedRegions;
+                    );
 
-                engineeringDocument.DocumentSerializationHelper.MainRegions = deserializedRegions;
+            mcdxDeserializer.Deserialize(xmlDoc);
+            return (mcdxDeserializer.DeserializedRegions, worksheetData);
+        }
 
-                ((WorksheetControl)engineeringDocument.Worksheet).ApplyWorksheetDataLite(worksheetData);
-            }
+        private void ApplyMainSection(EngineeringDocument engineeringDocument, IList<IRegionPersistentData> regionsToApply, IWorksheetPersistentData worksheetData)
+        {
+            engineeringDocument.DocumentSerializationHelper.MainRegions = regionsToApply;
+
+            WorksheetControl worksheetControl = (WorksheetControl)engineeringDocument.Worksheet;
+            worksheetControl.ApplyWorksheetDataLite(worksheetData);
         }
 
         private XmlDocument SerializeRegions(IDictionary<UIElement, Point> serializableRegions, ISerializationHelper serializationHelper)
         {
             var regionCollectionSerializer = new worksheetRegionCollectionSerializer();
 
+            // Assign ID's to regions
+            if (serializationHelper.GetNextRegionId() != 0)
+            {
+                serializationHelper.Reset();
+            }
+
+            Dictionary<UIElement, long> regionIDs = new Dictionary<UIElement, long>();
+            foreach (var element in serializableRegions.Keys)
+            {
+                long id = serializationHelper.GetRegionId(element);
+
+                if (id == 0)
+                {
+                    serializationHelper.AssignNextRegionId(element);
+                    id = serializationHelper.GetRegionId(element);
+                }
+
+                regionIDs[element] = id;
+            }
+
+            /*
             var mcdxSerializer = new CustomMcdxSerializer(
                 new CustomWorksheetSectionSerializationStrategy(
                     serializableRegions,
@@ -423,23 +494,28 @@ namespace ShareCad
                 null,
                 true,
                 NotifyStoreAsset);
+            */
 
-            serializationHelper.Reset();
-            mcdxSerializer.Serialize();
+            var serializationStrategy = new CustomWorksheetSectionSerializationStrategy(serializableRegions, () => new worksheetRegionType());
 
-            return mcdxSerializer.XmlContentDocument;
+            //serializationHelper.Reset();
+            customMcdxSerializer.Serialize(regionCollectionSerializer, serializationStrategy);
+
+            return customMcdxSerializer.XmlContentDocument;
+        }
+
+        private object GetRegionData(UIElement control)
+        {
+            if (control is IPersistentDataProvider dataProvider)
+            {
+                return dataProvider.GetRegionPersistentData(customMcdxSerializer);
+            }
+
+            return null;
         }
 
         private XmlDocument SerializeRegions(IDictionary<UIElement, Point> serializableRegions, EngineeringDocument engineeringDocument) =>
             SerializeRegions(serializableRegions, engineeringDocument.DocumentSerializationHelper);
-
-        /// <summary>
-        /// Stops sharing.
-        /// </summary>
-        ~SharedDocument()
-        {
-            StopSharing();
-        }
 
         /*
         private static void Worksheet_PropertyChanged(object sender, PropertyChangedEventArgs e)

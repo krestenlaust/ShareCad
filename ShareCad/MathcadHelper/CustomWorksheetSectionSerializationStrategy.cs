@@ -31,7 +31,12 @@ namespace ShareCad
 
 			foreach (KeyValuePair<UIElement, Point> keyValuePair in _regionData)
 			{
+				// preserve region ID
+				long previousRegionID = s11NProvider.Helper.GetRegionId(keyValuePair.Key);
 				IRegionInWhiteboardType regionInWhiteboardType = RegionFactory.Instance.ConvertToIRegionType(_worksheetSectionRegionDataCreator, s11NProvider, keyValuePair.Key) as IRegionInWhiteboardType;
+				s11NProvider.Helper.SetRegionId(keyValuePair.Key, previousRegionID);
+				regionInWhiteboardType.regionid = previousRegionID.ToString();
+
 				regionInWhiteboardType.Location = keyValuePair.Value;
 				list.Add(regionInWhiteboardType);
 			}

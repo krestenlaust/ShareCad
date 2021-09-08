@@ -23,6 +23,51 @@ namespace ShareCad
 		private readonly StoreAsset SetAsset;
 		public delegate void StoreAsset(int ID, string filePath);
 
+		private readonly Action<XmlSchemaException> _onWriteValidationFailed;
+		private readonly ISerializationHelper _serializationHelper;
+		private readonly PackagePart _packagePart;
+
+		public XmlDocument XmlContentDocument { get; private set; }
+
+		public bool UseOverrides { get; private set; }
+
+		public PackagePart PackagePart
+		{
+			get
+			{
+				return _packagePart;
+			}
+		}
+
+		public ISerializationHelper Helper
+		{
+			get
+			{
+				return _serializationHelper;
+			}
+		}
+
+		public XmlNamespaceManager NameSpaceManager
+		{
+			get
+			{
+				return XmlWorksheetData.McdxNameSpaceManager;
+			}
+		}
+
+		public CustomMcdxSerializer(
+			ISerializationHelper helper,
+			StoreAsset storeAsset
+            )
+        {
+			UseOverrides = true;
+			_serializationHelper = helper;
+			_onWriteValidationFailed = null;
+
+			SetAsset = storeAsset;
+        }
+
+		/*
 		public CustomMcdxSerializer(
 			ISerializationStrategy serializationStrategy, 
 			ISerializationHelper helper, 
@@ -39,16 +84,15 @@ namespace ShareCad
 			UseOverrides = useOverrides;
 
 			SetAsset = storeAsset;
-		}
+		}*/
 
-		public void Serialize()
+		public void Serialize(IRegionCollectionSerializer regionCollectionSerializer, ISerializationStrategy serializationStrategy)
 		{
 			XmlContentDocument = new XmlDocument();
 
-            //InitializeDocument(XmlContentDocument);
 			SpiritResolver.InitializeDocument(XmlContentDocument, SchemasManager.Worksheet50);
 
-			BuildDocumentXml(_regionCollectionSerializer);
+			BuildDocumentXml(regionCollectionSerializer, serializationStrategy);
 			XmlContentDocument.Validate(new ValidationEventHandler(OnWriteValidationFailedHandler));
 		}
 
@@ -139,60 +183,18 @@ namespace ShareCad
 			return PackageOperationsProvider.PackPartAndGetId(PackagePart, getExistingPartRelationshipId, cacheRelationshipIdForNewPart, writeNewPartToPackage, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/include");
 		}
 
-		public XmlDocument XmlContentDocument { get; private set; }
-
-		public bool UseOverrides { get; private set; }
-
-		public PackagePart PackagePart
-		{
-			get
-			{
-				return _packagePart;
-			}
-		}
-
-		public ISerializationHelper Helper
-		{
-			get
-			{
-				return _serializationHelper;
-			}
-		}
-
-		public XmlNamespaceManager NameSpaceManager
-		{
-			get
-			{
-				return XmlWorksheetData.McdxNameSpaceManager;
-			}
-		}
-
-		public static string TempFile;
-
 		public string PackFlowDocument(FlowDocument flowDocument, string regionId)
 		{
-			TempFile = Path.GetTempFileName();
-            using (Stream stream = File.Open(TempFile, FileMode.Create, FileAccess.ReadWrite))
+			string tempFile = Path.GetTempFileName();
+            using (Stream stream = File.Open(tempFile, FileMode.Create, FileAccess.ReadWrite))
             {
 				TextRegionSerializationHelper.GetTextRangeFromStartToEnd(flowDocument).Save(stream, DataFormats.XamlPackage);
 				stream.Flush();
 			}
 
-			SetAsset(int.Parse(regionId), TempFile);
+			SetAsset(int.Parse(regionId), tempFile);
 
-			// TODO: Supporting sending flowdocuments.
 			return regionId;
-
-			/*
-			PackagePart packagePart = PackagePart;
-			PackagePart packagePart2 = PackageOperationsProvider.Instance.AddPartToPackage(packagePart.Package, string.Format("/mathcad/xaml/FlowDocument{0}.{1}", regionId, DataFormats.XamlPackage), "application/zip");
-			PackageRelationship packageRelationship = packagePart.CreateRelationship(packagePart2.Uri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/flowDocument");
-			using (Stream stream = packagePart2.GetStream(FileMode.Create, FileAccess.ReadWrite))
-			{
-				TextRegionSerializationHelper.SaveTextRangeAsXamlPackage(TextRegionSerializationHelper.GetTextRangeFromStartToEnd(flowDocument), stream);
-				stream.Flush();
-			}
-			return packageRelationship.Id;*/
 		}
 
 		public string PackProtectedPart(Stream content, string uniqueId, string regionType)
@@ -208,9 +210,9 @@ namespace ShareCad
 			return packageRelationship.Id;
 		}
 
-		private void BuildDocumentXml(IRegionCollectionSerializer regionCollectionSerializer)
+		private void BuildDocumentXml(IRegionCollectionSerializer regionCollectionSerializer, ISerializationStrategy serializationStrategy)
 		{
-			IList<IRegionType> regions = _serializationStrategy.GetRegions(this);
+			IList<IRegionType> regions = serializationStrategy.GetRegions(this);
 			regions.Each(delegate (IRegionType item)
 			{
 				if (item.S11NProvider == null)
@@ -227,9 +229,9 @@ namespace ShareCad
 			});
 			regionCollectionSerializer.Regions = regions;
 			regionCollectionSerializer.Serialize(XmlContentDocument, UseOverrides);
-			_serializationStrategy.SerializeRegionsEpilog(XmlContentDocument);
+			serializationStrategy.SerializeRegionsEpilog(XmlContentDocument);
             
-			if (SpiritResolver.WorksheetRootNode(XmlContentDocument, NameSpaceManager, _worksheetNodeName) is XmlElement xmlElement)
+			if (SpiritResolver.WorksheetRootNode(XmlContentDocument, NameSpaceManager, regionCollectionSerializer.RootNodeName) is XmlElement xmlElement)
             {
                 xmlElement.SetAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
                 xmlElement.SetAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
@@ -241,17 +243,5 @@ namespace ShareCad
                 xmlElement.SetAttribute("xmlns:p", "http://schemas.mathsoft.com/provenance10");
             }
         }
-
-		private readonly Action<XmlSchemaException> _onWriteValidationFailed;
-
-		private readonly ISerializationStrategy _serializationStrategy;
-
-		private readonly ISerializationHelper _serializationHelper;
-
-		private readonly IRegionCollectionSerializer _regionCollectionSerializer;
-
-		private readonly PackagePart _packagePart;
-
-		private readonly string _worksheetNodeName;
 	}
 }

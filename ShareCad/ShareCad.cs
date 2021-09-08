@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
@@ -7,11 +8,13 @@ using System.Security;
 using System.Security.Permissions;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using DevComponents.WpfDock;
 using DevComponents.WpfRibbon;
 using HarmonyLib;
 using Ptc.Controls;
 using Ptc.Controls.Core;
+using Ptc.Serialization;
 using Ptc.Wpf;
 using ShareCad.Logging;
 using ShareCad.Networking;
@@ -251,10 +254,29 @@ namespace ShareCad
         private static void Client_OnConnectFinished(NetworkClient.ConnectStatus obj)
         {
             Log.Print("Connection finished: " + obj);
+        }
 
-            if (obj == NetworkClient.ConnectStatus.Established)
+        [HarmonyPatch]
+        public static class McdxSerializer
+        {
+            [HarmonyPrefix]
+            [HarmonyPatch(typeof(Ptc.Controls.Core.Serialization.McdxSerializer), "PackFlowDocument")]
+            public static bool Prefix_PackFlowDocument(ref string __result, Ptc.Controls.Core.Serialization.McdxSerializer __instance, ref FlowDocument flowDocument, ref string regionId)
             {
-                
+                /*
+                string tempFile = Path.GetTempFileName();
+                using (Stream stream = File.Open(tempFile, FileMode.Create, FileAccess.ReadWrite))
+                {
+                    TextRegionSerializationHelper.GetTextRangeFromStartToEnd(flowDocument).Save(stream, DataFormats.XamlPackage);
+                    stream.Flush();
+                }
+
+                SetAsset(int.Parse(regionId), tempFile);
+
+                // TODO: Supporting sending flowdocuments.
+                return regionId;
+                */
+                return true;
             }
         }
 

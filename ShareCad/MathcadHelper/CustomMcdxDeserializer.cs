@@ -152,6 +152,7 @@ namespace ShareCad
             }
         }
 
+        /*
         public void OldUnpackFlowDocument(ref FlowDocument flowDocument, string itemIdRef)
         {
             // TODO: Support recieving flowdocuments.
@@ -166,7 +167,7 @@ namespace ShareCad
                 TextRange textRangeFromStartToEnd = TextRegionSerializationHelper.GetTextRangeFromStartToEnd(flowDocument);
                 textRangeFromStartToEnd.Load(srcStream, DataFormats.XamlPackage);
             }
-        }
+        }*/
 
         private static void RepairPictureElementIfNeed(XmlNode region)
         {
