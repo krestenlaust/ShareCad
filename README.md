@@ -1,4 +1,4 @@
 # Installation
-### 1. Erstat MathcadPrime.exe i PTC\Mathcad Prime 4.0
-### 2. Træk 0Harmony.dll ind i PTC\Mathcad Prime 4.0
-### 3. Træk ShareCad.dll ind i PTC\Mathcad Prime 4.0
+### 1. Replace MathcadPrime.exe in PTC\Mathcad Prime 4.0
+### 2. Drag 0Harmony.dll into PTC\Mathcad Prime 4.0
+### 3. Drag ShareCad.dll into PTC\Mathcad Prime 4.0
