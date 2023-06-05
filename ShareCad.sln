@@ -16,37 +16,66 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Deinternalizer", "Deinterna
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShareCad.Logging", "ShareCad.Logging\ShareCad.Logging.csproj", "{6D792E28-01A9-401B-B57B-5347BF9A3E34}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Patcher", "Patcher\Patcher.csproj", "{B65D920D-3E50-41B6-9811-3B5407A199A8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShareCad.Networking.Tests", "ShareCad.Networking.Tests\ShareCad.Networking.Tests.csproj", "{CA0B0154-8E3D-4912-B0BA-3DB545E782C2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug Mathcad|Any CPU = Debug Mathcad|Any CPU
+		Debug Network|Any CPU = Debug Network|Any CPU
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{88B9903C-F071-4E64-9E4B-88D763DFE636}.Debug Mathcad|Any CPU.ActiveCfg = Debug Mathcad|Any CPU
 		{88B9903C-F071-4E64-9E4B-88D763DFE636}.Debug Mathcad|Any CPU.Build.0 = Debug Mathcad|Any CPU
+		{88B9903C-F071-4E64-9E4B-88D763DFE636}.Debug Network|Any CPU.ActiveCfg = Debug Network|Any CPU
+		{88B9903C-F071-4E64-9E4B-88D763DFE636}.Debug Network|Any CPU.Build.0 = Debug Network|Any CPU
 		{88B9903C-F071-4E64-9E4B-88D763DFE636}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{88B9903C-F071-4E64-9E4B-88D763DFE636}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{88B9903C-F071-4E64-9E4B-88D763DFE636}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{88B9903C-F071-4E64-9E4B-88D763DFE636}.Release|Any CPU.Build.0 = Release|Any CPU
 		{60072FEE-7D38-4312-9B31-A016610CF8DF}.Debug Mathcad|Any CPU.ActiveCfg = Debug|Any CPU
 		{60072FEE-7D38-4312-9B31-A016610CF8DF}.Debug Mathcad|Any CPU.Build.0 = Debug|Any CPU
+		{60072FEE-7D38-4312-9B31-A016610CF8DF}.Debug Network|Any CPU.ActiveCfg = Debug Network|Any CPU
+		{60072FEE-7D38-4312-9B31-A016610CF8DF}.Debug Network|Any CPU.Build.0 = Debug Network|Any CPU
 		{60072FEE-7D38-4312-9B31-A016610CF8DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{60072FEE-7D38-4312-9B31-A016610CF8DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{60072FEE-7D38-4312-9B31-A016610CF8DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{60072FEE-7D38-4312-9B31-A016610CF8DF}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C3BAC9A4-DDD7-4B36-86A5-1A95378614CA}.Debug Mathcad|Any CPU.ActiveCfg = Debug|Any CPU
 		{C3BAC9A4-DDD7-4B36-86A5-1A95378614CA}.Debug Mathcad|Any CPU.Build.0 = Debug|Any CPU
+		{C3BAC9A4-DDD7-4B36-86A5-1A95378614CA}.Debug Network|Any CPU.ActiveCfg = Debug|Any CPU
+		{C3BAC9A4-DDD7-4B36-86A5-1A95378614CA}.Debug Network|Any CPU.Build.0 = Debug|Any CPU
 		{C3BAC9A4-DDD7-4B36-86A5-1A95378614CA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C3BAC9A4-DDD7-4B36-86A5-1A95378614CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C3BAC9A4-DDD7-4B36-86A5-1A95378614CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C3BAC9A4-DDD7-4B36-86A5-1A95378614CA}.Release|Any CPU.Build.0 = Release|Any CPU
 		{6D792E28-01A9-401B-B57B-5347BF9A3E34}.Debug Mathcad|Any CPU.ActiveCfg = Debug|Any CPU
 		{6D792E28-01A9-401B-B57B-5347BF9A3E34}.Debug Mathcad|Any CPU.Build.0 = Debug|Any CPU
+		{6D792E28-01A9-401B-B57B-5347BF9A3E34}.Debug Network|Any CPU.ActiveCfg = Debug|Any CPU
+		{6D792E28-01A9-401B-B57B-5347BF9A3E34}.Debug Network|Any CPU.Build.0 = Debug|Any CPU
 		{6D792E28-01A9-401B-B57B-5347BF9A3E34}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{6D792E28-01A9-401B-B57B-5347BF9A3E34}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6D792E28-01A9-401B-B57B-5347BF9A3E34}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6D792E28-01A9-401B-B57B-5347BF9A3E34}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B65D920D-3E50-41B6-9811-3B5407A199A8}.Debug Mathcad|Any CPU.ActiveCfg = Debug Mathcad|Any CPU
+		{B65D920D-3E50-41B6-9811-3B5407A199A8}.Debug Mathcad|Any CPU.Build.0 = Debug Mathcad|Any CPU
+		{B65D920D-3E50-41B6-9811-3B5407A199A8}.Debug Network|Any CPU.ActiveCfg = Debug Network|Any CPU
+		{B65D920D-3E50-41B6-9811-3B5407A199A8}.Debug Network|Any CPU.Build.0 = Debug Network|Any CPU
+		{B65D920D-3E50-41B6-9811-3B5407A199A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B65D920D-3E50-41B6-9811-3B5407A199A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B65D920D-3E50-41B6-9811-3B5407A199A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B65D920D-3E50-41B6-9811-3B5407A199A8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CA0B0154-8E3D-4912-B0BA-3DB545E782C2}.Debug Mathcad|Any CPU.ActiveCfg = Debug|Any CPU
+		{CA0B0154-8E3D-4912-B0BA-3DB545E782C2}.Debug Mathcad|Any CPU.Build.0 = Debug|Any CPU
+		{CA0B0154-8E3D-4912-B0BA-3DB545E782C2}.Debug Network|Any CPU.ActiveCfg = Debug|Any CPU
+		{CA0B0154-8E3D-4912-B0BA-3DB545E782C2}.Debug Network|Any CPU.Build.0 = Debug|Any CPU
+		{CA0B0154-8E3D-4912-B0BA-3DB545E782C2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CA0B0154-8E3D-4912-B0BA-3DB545E782C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CA0B0154-8E3D-4912-B0BA-3DB545E782C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CA0B0154-8E3D-4912-B0BA-3DB545E782C2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

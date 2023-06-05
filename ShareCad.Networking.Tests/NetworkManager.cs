@@ -1,8 +1,8 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Text;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace ShareCad.Networking.Tests
 {
