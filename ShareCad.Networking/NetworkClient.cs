@@ -35,12 +35,13 @@ namespace ShareCad.Networking
     /// </summary>
     public class NetworkClient
     {
-        private readonly Queue<Packet> packetsToSend = new Queue<Packet>();
-        private readonly Logger log;
         public readonly TcpClient HostClient;
         public readonly IPEndPoint Endpoint;
         public bool isConnecting { get; private set; }
-        private bool isDisconnected = false;
+        
+        readonly Queue<Packet> packetsToSend = new Queue<Packet>();
+        readonly Logger log;
+        bool isDisconnected = false;
 
         public NetworkClient(IPEndPoint endpoint)
         {
