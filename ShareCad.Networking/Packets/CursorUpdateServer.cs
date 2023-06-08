@@ -10,7 +10,7 @@ namespace ShareCad.Networking.Packets
         public Point Position { get; private set; }
         public bool DestroyCrosshair { get; private set; }
 
-        private readonly byte[] serializedData;
+        readonly byte[] serializedData;
 
         public CursorUpdateServer(byte collaboratorID, Point position, bool destroyCrosshair)
         {

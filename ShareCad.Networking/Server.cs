@@ -14,13 +14,13 @@ namespace ShareCad.Networking
     {
         //private const string EmptyDocumentXML = "<worksheet xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:ve=\"http://schemas.openxmlformats.org/markup-compatibility/2006\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\" xmlns:ws=\"http://schemas.mathsoft.com/worksheet50\" xmlns:ml=\"http://schemas.mathsoft.com/math50\" xmlns:u=\"http://schemas.mathsoft.com/units10\" xmlns:p=\"http://schemas.mathsoft.com/provenance10\" xmlns=\"http://schemas.mathsoft.com/worksheet50\"><regions /></worksheet>";
 
-        private readonly TcpListener listener;
-        private readonly List<Collaborator> clients;
-        private readonly HashSet<Collaborator> disconnectedClients = new HashSet<Collaborator>();
-        private readonly Logger logger = new Logger("Server", false);
-        private readonly HashSet<AssetPacket> assets = new HashSet<AssetPacket>();
-        private XmlDocument currentDocument;
-        private byte availableCollaboratorID;
+        readonly TcpListener listener;
+        readonly List<Collaborator> clients;
+        readonly HashSet<Collaborator> disconnectedClients = new HashSet<Collaborator>();
+        readonly Logger logger = new Logger("Server", false);
+        readonly HashSet<AssetPacket> assets = new HashSet<AssetPacket>();
+        XmlDocument currentDocument;
+        byte availableCollaboratorID;
 
         /// <summary>
         /// 
@@ -191,7 +191,7 @@ namespace ShareCad.Networking
             disconnectedClients.Clear();
         }
 
-        private void SendPacketAll(byte[] packet, byte ignoreID=byte.MaxValue)
+        void SendPacketAll(byte[] packet, byte ignoreID=byte.MaxValue)
         {
             foreach (var item in clients)
             {
@@ -217,7 +217,7 @@ namespace ShareCad.Networking
             }
         }
 
-        private void UpdateDocumentAll(XmlDocument newDocument, byte ignoreID=byte.MaxValue)
+        void UpdateDocumentAll(XmlDocument newDocument, byte ignoreID=byte.MaxValue)
         {
             DocumentUpdate packet = new DocumentUpdate(newDocument);
             byte[] serializedPacket = packet.Serialize();
@@ -225,7 +225,7 @@ namespace ShareCad.Networking
             SendPacketAll(serializedPacket, ignoreID);
         }
 
-        private void UpdateCursorAll(byte collaboratorID, Point position, bool destroyCursor)
+        void UpdateCursorAll(byte collaboratorID, Point position, bool destroyCursor)
         {
             CursorUpdateServer packet = new CursorUpdateServer(collaboratorID, position, destroyCursor);
             byte[] serializedPacket = packet.Serialize();
@@ -233,7 +233,7 @@ namespace ShareCad.Networking
             SendPacketAll(serializedPacket, collaboratorID);
         }
 
-        private void ClientConnected(IAsyncResult ar)
+        void ClientConnected(IAsyncResult ar)
         {
             TcpClient newClient;
 

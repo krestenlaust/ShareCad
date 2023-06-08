@@ -45,8 +45,8 @@ namespace ShareCad
         /// <summary>
         /// Sand, når modulet er initializeret.
         /// </summary>
-        private static bool initializedModule = false;
-        private static readonly List<SharedDocument> sharedDocuments = new List<SharedDocument>();
+        static bool initializedModule = false;
+        static readonly List<SharedDocument> sharedDocuments = new List<SharedDocument>();
         public static Logger Log = new Logger("", true);
 
         /// <summary>

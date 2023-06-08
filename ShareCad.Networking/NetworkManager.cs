@@ -16,12 +16,12 @@ namespace ShareCad.Networking
         public const int NetworkUpdateInterval = 100;
 
         public NetworkClient FocusedClient = null;
-        private short currentPort = DefaultPort;
-        private readonly Logger log = new Logger("Manager", false);
-        private readonly Thread networkThread;
-        private bool networkRunning = true;
-        private readonly List<Server> servers = new List<Server>();
-        private readonly List<NetworkClient> clients = new List<NetworkClient>();
+        readonly Logger log = new Logger("Manager", false);
+        readonly Thread networkThread;
+        readonly List<Server> servers = new List<Server>();
+        readonly List<NetworkClient> clients = new List<NetworkClient>();
+        short currentPort = DefaultPort;
+        bool networkRunning = true;
 
         public NetworkManager()
         {
@@ -57,7 +57,7 @@ namespace ShareCad.Networking
             networkRunning = false;
         }
 
-        private void NetworkLoop()
+        void NetworkLoop()
         {
             Stopwatch stopwatch = new Stopwatch();
             while (networkRunning)

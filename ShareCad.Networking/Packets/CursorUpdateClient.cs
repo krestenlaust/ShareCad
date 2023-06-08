@@ -7,7 +7,7 @@ namespace ShareCad.Networking.Packets
     public class CursorUpdateClient : Packet
     {
         public Point Position { get; private set; }
-        private readonly byte[] serializedData;
+        readonly byte[] serializedData;
 
         public CursorUpdateClient(Point position)
         {

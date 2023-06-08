@@ -202,12 +202,12 @@ namespace ShareCad.Networking
 
         public void SendAsset(AssetPacket packet) => EnqueuePacket(packet);
 
-        private void EnqueuePacket(Packet packet)
+        void EnqueuePacket(Packet packet)
         {
             packetsToSend.Enqueue(packet);
         }
 
-        private void TransmitPacket(Packet packet)
+        void TransmitPacket(Packet packet)
         {
             try
             {
