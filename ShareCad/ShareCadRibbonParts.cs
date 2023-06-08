@@ -1,7 +1,4 @@
-﻿using DevComponents.WpfRibbon;
-using ShareCad.Networking;
-using Spirit;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,15 +7,22 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 using System.IO;
+using DevComponents.WpfRibbon;
+using ShareCad.Networking;
+using Spirit;
 using Ptc.Wpf;
 using Ptc.Controls;
 using System.Windows.Media;
 
 namespace ShareCad
 {
+    /// <summary>
+    /// Keeps track of, and instantiates the GUI elements that are associated with this extension.
+    /// TODO: Move UI elements into separate project.
+    /// </summary>
     public static class ShareCadRibbonParts
     {
-        private static ButtonPanel CreateButtonPanel()
+        static ButtonPanel CreateButtonPanel()
         {
             return new ButtonPanel
             {
@@ -27,7 +31,7 @@ namespace ShareCad
         }
 
         // TODO: Crashes when file isn't found.
-        private static Image CreateImage(string source)
+        static Image CreateImage(string source)
         {
             try
             {
@@ -48,7 +52,7 @@ namespace ShareCad
             }
         }
 
-        private static ButtonEx CreateButtonEx(string header, Image image, RoutedEventHandler clickEvent)
+        static ButtonEx CreateButtonEx(string header, Image image, RoutedEventHandler clickEvent)
         {
             ButtonEx button = new ButtonEx
             {
@@ -70,7 +74,7 @@ namespace ShareCad
             return button;
         }
 
-        private class StylisedRibbonBar : RibbonBar
+        class StylisedRibbonBar : RibbonBar
         {
             public StylisedRibbonBar()
             {
@@ -81,7 +85,7 @@ namespace ShareCad
             }
         }
 
-        private class LiveShare_GeneralRibbonBar : StylisedRibbonBar
+        class LiveShare_GeneralRibbonBar : StylisedRibbonBar
         {
             public LiveShare_GeneralRibbonBar() : base()
             {
@@ -146,7 +150,7 @@ namespace ShareCad
             }
         }
 
-        private class LiveShare_CollaboratorManager : StylisedRibbonBar
+        class LiveShare_CollaboratorManager : StylisedRibbonBar
         {
             public LiveShare_CollaboratorManager() : base()
             {

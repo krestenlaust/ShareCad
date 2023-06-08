@@ -31,27 +31,27 @@ namespace ShareCad
         /// <summary>
         /// The least amount of time passing, from the worksheet is changed to the server is notified.
         /// </summary>
-        private const double Update_DebounceTimeoutCalculation = 200;
-        private const double Update_DebounceTimeoutKeypress = 700;
+        const double Update_DebounceTimeoutCalculation = 200;
+        const double Update_DebounceTimeoutKeypress = 700;
 
         public readonly EngineeringDocument Document;
         public readonly NetworkClient NetworkClient;
 
-        private readonly Dictionary<byte, CollaboratorCrosshair> collaboratorCrosshairs = new Dictionary<byte, CollaboratorCrosshair>();
-        private readonly Dictionary<int, string> fileByID = new Dictionary<int, string>();
-        private readonly IWorksheetViewModel viewModel;
-        private readonly Logging.Logger log;
-        private readonly Timer networkPushDebounce = new Timer();
-        private bool ignoreFirstNetworkPush = false;
-        private bool ignoreNextCalculateChange = false;
-        private Point previousCursorPosition;
-        private bool previousConnectedStatus;
-        private readonly CustomMcdxSerializer customMcdxSerializer;
+        readonly Dictionary<byte, CollaboratorCrosshair> collaboratorCrosshairs = new Dictionary<byte, CollaboratorCrosshair>();
+        readonly Dictionary<int, string> fileByID = new Dictionary<int, string>();
+        readonly IWorksheetViewModel viewModel;
+        readonly Logging.Logger log;
+        readonly Timer networkPushDebounce = new Timer();
+        bool ignoreFirstNetworkPush = false;
+        bool ignoreNextCalculateChange = false;
+        Point previousCursorPosition;
+        bool previousConnectedStatus;
+        readonly CustomMcdxSerializer customMcdxSerializer;
 
         /// <summary>
         /// Updates visual indicators of connection, and returns the connection status.
         /// </summary>
-        private bool isConnected
+        bool isConnected
         {
             get
             {
@@ -196,7 +196,7 @@ namespace ShareCad
             StoreAsset(id, filepath);
         }
 
-        private void StoreAsset(int id, string filePath)
+        void StoreAsset(int id, string filePath)
         {
             log.Print($"Stored asset with ID {id} at {filePath}");
             if (fileByID.TryGetValue(id, out string oldFilePath))
@@ -214,7 +214,7 @@ namespace ShareCad
             fileByID[id] = filePath;
         }
 
-        private void Document_OnDispose(IEngineeringDocument obj)
+        void Document_OnDispose(IEngineeringDocument obj)
         {
             StopSharing();
         }
@@ -223,12 +223,12 @@ namespace ShareCad
         /// Requires dispatching.
         /// </summary>
         /// <param name="connected"></param>
-        private void UpdateConnectionStatus(bool connected)
+        void UpdateConnectionStatus(bool connected)
         {
             Document.DocumentTabIcon = Path.GetFullPath(connected ? BootlegResourceManager.Icons.ConnectIcon : BootlegResourceManager.Icons.NoConnectionIcon);
         }
 
-        private void PushDocument()
+        void PushDocument()
         {
             if (!isConnected)
             {
@@ -256,7 +256,7 @@ namespace ShareCad
         /// Requires dispatching.
         /// </summary>
         /// <param name="doc"></param>
-        private void UpdateWorksheet(XmlDocument doc)
+        void UpdateWorksheet(XmlDocument doc)
         {
             ignoreFirstNetworkPush = true;
 
@@ -305,9 +305,9 @@ namespace ShareCad
             log.Print("Your worksheet has been updated");
         }
 
-        private Control previousElement;
+        Control previousElement;
 
-        private void PropertyChanged(object sender, PropertyChangedEventArgs e)
+        void PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             log.Print(e.PropertyName);
 
@@ -350,7 +350,7 @@ namespace ShareCad
             }
         }
 
-        private void NewElement_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
+        void NewElement_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
         {
             log.Print(e.Key);
 
@@ -366,7 +366,7 @@ namespace ShareCad
             }
         }
 
-        private void MousePositionMightveChanged(object sender, System.Windows.Input.InputEventArgs e)
+        void MousePositionMightveChanged(object sender, System.Windows.Input.InputEventArgs e)
         {
             RemoteUpdateCursorPosition();
         }
@@ -411,7 +411,7 @@ namespace ShareCad
             });
         }
 
-        private (IList<IRegionPersistentData>, IWorksheetPersistentData) Deserialize(EngineeringDocument currentDocument, XmlDocument xmlDoc)
+        (IList<IRegionPersistentData>, IWorksheetPersistentData) Deserialize(EngineeringDocument currentDocument, XmlDocument xmlDoc)
         {
             if (currentDocument is null)
             {
@@ -451,7 +451,7 @@ namespace ShareCad
             return (mcdxDeserializer.DeserializedRegions, worksheetData);
         }
 
-        private void ApplyMainSection(EngineeringDocument engineeringDocument, IList<IRegionPersistentData> regionsToApply, IWorksheetPersistentData worksheetData)
+        void ApplyMainSection(EngineeringDocument engineeringDocument, IList<IRegionPersistentData> regionsToApply, IWorksheetPersistentData worksheetData)
         {
             engineeringDocument.DocumentSerializationHelper.MainRegions = regionsToApply;
 
@@ -459,7 +459,7 @@ namespace ShareCad
             worksheetControl.ApplyWorksheetDataLite(worksheetData);
         }
 
-        private XmlDocument SerializeRegions(IDictionary<UIElement, Point> serializableRegions, ISerializationHelper serializationHelper)
+        XmlDocument SerializeRegions(IDictionary<UIElement, Point> serializableRegions, ISerializationHelper serializationHelper)
         {
             var regionCollectionSerializer = new worksheetRegionCollectionSerializer();
 
@@ -504,7 +504,7 @@ namespace ShareCad
             return customMcdxSerializer.XmlContentDocument;
         }
 
-        private object GetRegionData(UIElement control)
+        object GetRegionData(UIElement control)
         {
             if (control is IPersistentDataProvider dataProvider)
             {
@@ -514,7 +514,7 @@ namespace ShareCad
             return null;
         }
 
-        private XmlDocument SerializeRegions(IDictionary<UIElement, Point> serializableRegions, EngineeringDocument engineeringDocument) =>
+        XmlDocument SerializeRegions(IDictionary<UIElement, Point> serializableRegions, EngineeringDocument engineeringDocument) =>
             SerializeRegions(serializableRegions, engineeringDocument.DocumentSerializationHelper);
 
         /*
@@ -603,18 +603,18 @@ namespace ShareCad
         /// <summary>
         /// Manages collaborator crosshairs. One crosshair per page. Currently only supports non-draft mode.
         /// </summary>
-        private class CollaboratorCrosshair
+        class CollaboratorCrosshair
         {
             // Det er vel teknisk set 50, men tror 49 er det rigtige for det den bruges til.
-            private const int PageGridHeight = 49;
+            const int PageGridHeight = 49;
 
             /// <summary>
             /// Crosshair instances by their page index.
             /// </summary>
-            private readonly Dictionary<int, Crosshair> crosshairInstances = new Dictionary<int, Crosshair>();
-            private readonly SolidColorBrush crosshairColor = Brushes.Green;
-            private readonly IWorksheetViewModel viewModel;
-            private int previousPage;
+            readonly Dictionary<int, Crosshair> crosshairInstances = new Dictionary<int, Crosshair>();
+            readonly SolidColorBrush crosshairColor = Brushes.Green;
+            readonly IWorksheetViewModel viewModel;
+            int previousPage;
 
             public CollaboratorCrosshair(IWorksheetViewModel viewModel)
             {
@@ -673,7 +673,7 @@ namespace ShareCad
             /// </summary>
             /// <param name="pageIndex"></param>
             /// <returns>Null if page index is bigger than actual number of pages.</returns>
-            private PageBodyCanvas GetPageBodyCanvas(int pageIndex)
+            PageBodyCanvas GetPageBodyCanvas(int pageIndex)
             {
                 IEnumerable<IWorksheetPage> pages = viewModel.PageManager.Pages;
 
@@ -689,7 +689,7 @@ namespace ShareCad
             }
 
             // TODO: ikke lavet endnu, lige nu laver den bare et crosshair på den første side.
-            private Crosshair InstantiateCrosshairOnPage(int pageIndex)
+            Crosshair InstantiateCrosshairOnPage(int pageIndex)
             {
                 PageBodyCanvas canvas = GetPageBodyCanvas(pageIndex);
 
@@ -710,7 +710,7 @@ namespace ShareCad
                 return crosshair;
             }
             
-            private void RemoveCrosshairOnPage(Crosshair crosshair, int pageIndex)
+            void RemoveCrosshairOnPage(Crosshair crosshair, int pageIndex)
             {
                 if (crosshair is null)
                 {
@@ -732,18 +732,18 @@ namespace ShareCad
             /// Gets the page containing the crosshair.
             /// </summary>
             /// <returns></returns>
-            private int GetPageByGridPosition(Point gridPosition)
+            int GetPageByGridPosition(Point gridPosition)
             {
                 return (int)(gridPosition.Y / PageGridHeight);
             }
 
-            private int GetPageByPosition(Point worksheetPosition)
+            int GetPageByPosition(Point worksheetPosition)
             {
                 Point gridPosition = viewModel.WorksheetLocationToGridLocation(worksheetPosition);
                 return GetPageByGridPosition(gridPosition);
             }
 
-            internal void Destroy()
+            void Destroy()
             {
                 foreach (var item in crosshairInstances)
                 {

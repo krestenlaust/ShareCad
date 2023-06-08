@@ -93,7 +93,7 @@ namespace ShareCad
             initializedModule = true;
         }
 
-        private void SpiritMainWindow_Closed(object sender, EventArgs e)
+        void SpiritMainWindow_Closed(object sender, EventArgs e)
         {
             NetworkManager?.Stop();
             Instance = null;
@@ -101,7 +101,7 @@ namespace ShareCad
             Application.Current.Dispatcher.InvokeShutdown();
         }
 
-        private List<Modes> ParseCommandlineArguments(string[] args)
+        List<Modes> ParseCommandlineArguments(string[] args)
         {
             List<Modes> modes = new List<Modes>();
 
@@ -135,7 +135,7 @@ namespace ShareCad
                     select document).FirstOrDefault();
         }
 
-        private void ShareCad_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        void ShareCad_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             Log.Print("Selection changed: " + sender + " . " + e.RoutedEvent);
 
@@ -201,7 +201,7 @@ namespace ShareCad
             NewDocumentAction = null;
         }
 
-        private static string GetLocalIPAddress()
+        static string GetLocalIPAddress()
         {
             var host = Dns.GetHostEntry(Dns.GetHostName());
 
@@ -233,7 +233,7 @@ namespace ShareCad
             return ConnectSharedDocument(document, new IPEndPoint(IPAddress.Loopback, port));
         }
 
-        private static SharedDocument ConnectSharedDocument(EngineeringDocument document, IPEndPoint targetEndpoint)
+        static SharedDocument ConnectSharedDocument(EngineeringDocument document, IPEndPoint targetEndpoint)
         {
             if (NetworkManager is null)
             {
@@ -251,7 +251,7 @@ namespace ShareCad
             return sharedDocument;
         }
 
-        private static void Client_OnConnectFinished(NetworkClient.ConnectStatus obj)
+        static void Client_OnConnectFinished(NetworkClient.ConnectStatus obj)
         {
             Log.Print("Connection finished: " + obj);
         }
@@ -280,7 +280,7 @@ namespace ShareCad
             }
         }
 
-        private Ribbon GetRibbon()
+        Ribbon GetRibbon()
         {
             ContentControl rootElement = (ContentControl)Application.Current.MainWindow;
             Panel panel = (Panel)rootElement.Content;
