@@ -23,8 +23,8 @@ namespace Patcher
 
             var processor = method.Body.GetILProcessor();
             // lavet til kommentarer af Kresten. (ellers vil den ik køre)
-            //var inst1 = processor.Create(OpCodes.Call, AccessTools.TypeByName("Directory").GetMethod(""));
-            //processor.Append(inst1);
+            var inst1 = processor.Create(OpCodes.Call, AccessTools.TypeByName("Directory").GetMethod(""));
+            processor.Append(inst1);
         }
     }
 }
