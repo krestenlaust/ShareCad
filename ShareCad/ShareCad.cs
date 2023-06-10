@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
@@ -14,7 +13,6 @@ using DevComponents.WpfRibbon;
 using HarmonyLib;
 using Ptc.Controls;
 using Ptc.Controls.Core;
-using Ptc.Serialization;
 using Ptc.Wpf;
 using ShareCad.Logging;
 using ShareCad.Networking;

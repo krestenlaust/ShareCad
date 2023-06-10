@@ -46,7 +46,7 @@ namespace ShareCad.Networking
 
             clients.Add(client);
 
-            return client;            
+            return client;
         }
 
         /// <summary>

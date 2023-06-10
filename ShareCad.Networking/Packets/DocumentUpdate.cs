@@ -13,7 +13,7 @@ namespace ShareCad.Networking.Packets
         public DocumentUpdate(Stream stream)
         {
             PacketType = PacketType.DocumentUpdate;
-            
+
             byte[] lengthBytes = new byte[sizeof(int)];
             stream.Read(lengthBytes, 0, lengthBytes.Length);
 

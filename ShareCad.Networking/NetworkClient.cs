@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading;
 using System.Windows;
 using System.Xml;
 using ShareCad.Logging;
@@ -38,7 +35,7 @@ namespace ShareCad.Networking
         public readonly TcpClient HostClient;
         public readonly IPEndPoint Endpoint;
         public bool isConnecting { get; private set; }
-        
+
         readonly Queue<Packet> packetsToSend = new Queue<Packet>();
         readonly Logger log;
         bool isDisconnected = false;

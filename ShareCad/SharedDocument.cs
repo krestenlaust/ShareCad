@@ -9,16 +9,15 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using System.Xml;
+using Path = System.IO.Path;
 using Ptc.Controls;
 using Ptc.Controls.Core;
 using Ptc.Controls.Worksheet;
 using Ptc.PersistentData;
 using Ptc.PersistentDataObjects;
 using Ptc.Serialization;
-using Ptc.Wpf;
 using ShareCad.Networking;
 using ShareCad.Networking.Packets;
-using Path = System.IO.Path;
 
 namespace ShareCad
 {
@@ -269,7 +268,7 @@ namespace ShareCad
             if (worksheetItems.Count > 0)
             {
                 Point previousPosition = viewModel.InsertionPoint;
-                
+
                 // Select every item on whiteboard.
                 viewModel.HandleSelectAll();
 
@@ -331,7 +330,7 @@ namespace ShareCad
                 previousElement = currentElement;
             }
 
-            
+
             if (e.PropertyName == "IsCalculating")
             {
                 if (ignoreNextCalculateChange)
@@ -697,7 +696,7 @@ namespace ShareCad
                 {
                     return null;
                 }
-                
+
                 Crosshair crosshair = new Crosshair();
                 Line line1 = (Line)crosshair.Children[0];
                 Line line2 = (Line)crosshair.Children[1];

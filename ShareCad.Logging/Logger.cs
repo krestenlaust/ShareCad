@@ -11,7 +11,7 @@ namespace ShareCad.Logging
 
         private readonly string prefix;
         private readonly bool printTime;
-        
+
         public Logger(string prefix, bool printTime)
         {
             this.prefix = prefix;

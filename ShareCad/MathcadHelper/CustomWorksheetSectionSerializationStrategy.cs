@@ -10,38 +10,38 @@ using Ptc.Serialization;
 namespace ShareCad
 {
     public class CustomWorksheetSectionSerializationStrategy : ISerializationStrategy
-	{
-		private readonly IDictionary<UIElement, Point> _regionData;
+    {
+        private readonly IDictionary<UIElement, Point> _regionData;
 
-		public CustomWorksheetSectionSerializationStrategy(IDictionary<UIElement, Point> serializableRegions, DelegateFunction0<IRegionType> worksheetSectionRegionDataCreator)
-		{
-			_regionData = serializableRegions;
-			_worksheetSectionRegionDataCreator = worksheetSectionRegionDataCreator;
-		}
-		
-		public readonly DelegateFunction0<IRegionType> _worksheetSectionRegionDataCreator;
+        public CustomWorksheetSectionSerializationStrategy(IDictionary<UIElement, Point> serializableRegions, DelegateFunction0<IRegionType> worksheetSectionRegionDataCreator)
+        {
+            _regionData = serializableRegions;
+            _worksheetSectionRegionDataCreator = worksheetSectionRegionDataCreator;
+        }
 
-		public void SerializeRegionsEpilog(XmlDocument xmlDocument)
-		{
-		}
+        public readonly DelegateFunction0<IRegionType> _worksheetSectionRegionDataCreator;
 
-		public IList<IRegionType> GetRegions(IS11NProvider s11NProvider)
-		{
-			List<IRegionType> list = new List<IRegionType>();
+        public void SerializeRegionsEpilog(XmlDocument xmlDocument)
+        {
+        }
 
-			foreach (KeyValuePair<UIElement, Point> keyValuePair in _regionData)
-			{
-				// preserve region ID
-				long previousRegionID = s11NProvider.Helper.GetRegionId(keyValuePair.Key);
-				IRegionInWhiteboardType regionInWhiteboardType = RegionFactory.Instance.ConvertToIRegionType(_worksheetSectionRegionDataCreator, s11NProvider, keyValuePair.Key) as IRegionInWhiteboardType;
-				s11NProvider.Helper.SetRegionId(keyValuePair.Key, previousRegionID);
-				regionInWhiteboardType.regionid = previousRegionID.ToString();
+        public IList<IRegionType> GetRegions(IS11NProvider s11NProvider)
+        {
+            List<IRegionType> list = new List<IRegionType>();
 
-				regionInWhiteboardType.Location = keyValuePair.Value;
-				list.Add(regionInWhiteboardType);
-			}
+            foreach (KeyValuePair<UIElement, Point> keyValuePair in _regionData)
+            {
+                // preserve region ID
+                long previousRegionID = s11NProvider.Helper.GetRegionId(keyValuePair.Key);
+                IRegionInWhiteboardType regionInWhiteboardType = RegionFactory.Instance.ConvertToIRegionType(_worksheetSectionRegionDataCreator, s11NProvider, keyValuePair.Key) as IRegionInWhiteboardType;
+                s11NProvider.Helper.SetRegionId(keyValuePair.Key, previousRegionID);
+                regionInWhiteboardType.regionid = previousRegionID.ToString();
 
-			return list;
-		}
-	}
+                regionInWhiteboardType.Location = keyValuePair.Value;
+                list.Add(regionInWhiteboardType);
+            }
+
+            return list;
+        }
+    }
 }
