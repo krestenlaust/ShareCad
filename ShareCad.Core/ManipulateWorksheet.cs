@@ -11,7 +11,7 @@ using Ptc.Serialization;
 
 [module: UnverifiableCode]
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
-namespace ShareCad
+namespace ShareCad.Core
 {
     public static class ManipulateWorksheet
     {

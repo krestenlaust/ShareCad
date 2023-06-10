@@ -11,9 +11,7 @@ using System.Windows.Documents;
 using DevComponents.WpfDock;
 using DevComponents.WpfRibbon;
 using HarmonyLib;
-using Ptc.Controls;
-using Ptc.Controls.Core;
-using Ptc.Wpf;
+using ShareCad.Core;
 using ShareCad.Logging;
 using ShareCad.Networking;
 using ShareCad.UI;
@@ -21,6 +19,7 @@ using Spirit;
 
 [module: UnverifiableCode]
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
+
 namespace ShareCad
 {
     [HarmonyPatch]
@@ -45,7 +44,6 @@ namespace ShareCad
         /// Sand, når modulet er initializeret.
         /// </summary>
         static bool initializedModule = false;
-        static readonly List<SharedDocument> sharedDocuments = new List<SharedDocument>();
         public static Logger Log = new Logger("", true);
 
         /// <summary>
@@ -87,59 +85,13 @@ namespace ShareCad
             harmony.PatchAll(Assembly.GetExecutingAssembly());
 
             ShareCadRibbon.ExtendRibbonControl(GetRibbon());
-            ShareCadRibbon.StopSharingPressed += ShareCadRibbon_StopSharingPressed;
-            ShareCadRibbon.ShareCurrentDocumentPressed += ShareCadRibbon_ShareCurrentDocumentPressed;
-            ShareCadRibbon.ShareNewDocumentPressed += ShareCadRibbon_ShareNewDocumentPressed;
-            ShareCadRibbon.ConnectToDocumentPressed += ShareCadRibbon_ConnectToDocumentPressed;
+            ShareCadRibbon.StopSharingPressed += Core.Core.ShareCadRibbon_StopSharingPressed;
+            ShareCadRibbon.ShareCurrentDocumentPressed += Core.Core.ShareCadRibbon_ShareCurrentDocumentPressed;
+            ShareCadRibbon.ShareNewDocumentPressed += Core.Core.ShareCadRibbon_ShareNewDocumentPressed;
+            ShareCadRibbon.ConnectToDocumentPressed += Core.Core.ShareCadRibbon_ConnectToDocumentPressed;
 
             Log.Print("LOADED!");
             initializedModule = true;
-        }
-
-        private void ShareCadRibbon_ConnectToDocumentPressed()
-        {
-            InquireIP result = new InquireIP();
-
-            var dlgResult = result.Show(WpfUtils.ApplicationFullName);
-            if (dlgResult != System.Windows.Forms.DialogResult.OK)
-            {
-                return;
-            }
-
-            NewDocumentIP = result.IP;
-            NewDocumentPort = result.Port;
-            NewDocumentAction = NetworkFunction.Guest;
-            AppCommands.NewEngineeringDocument.Execute(null, SpiritMainWindow);
-        }
-
-        private void ShareCadRibbon_ShareNewDocumentPressed()
-        {
-            NewDocumentAction = NetworkFunction.Host;
-            AppCommands.NewEngineeringDocument.Execute(null, SpiritMainWindow);
-        }
-
-        private void ShareCadRibbon_ShareCurrentDocumentPressed()
-        {
-            EngineeringDocument currentDocument = GetCurrentTabDocument();
-
-            if (!(GetSharedDocumentByEngineeringDocument(currentDocument) is null))
-            {
-                Console.WriteLine("Already shared");
-                return;
-            }
-
-            if (currentDocument is null)
-            {
-                return;
-            }
-
-            var sharedDoc = StartSharedDocument(currentDocument);
-            NetworkManager.FocusedClient = sharedDoc.NetworkClient;
-        }
-
-        private void ShareCadRibbon_StopSharingPressed()
-        {
-            NetworkManager.Stop();
         }
 
         void SpiritMainWindow_Closed(object sender, EventArgs e)
@@ -177,17 +129,9 @@ namespace ShareCad
             return SpiritMainWindow.ActiveDocument as EngineeringDocument;
         }
 
-        public static SharedDocument GetSharedDocumentByEngineeringDocument(EngineeringDocument doc)
-        {
-            return (from document in sharedDocuments
-                    where document.Document == doc
-                    select document).FirstOrDefault();
-        }
-
         void ShareCad_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             Log.Print("Selection changed: " + sender + " . " + e.RoutedEvent);
-
 
             DockWindow dockWindow = e.AddedItems[0] as DockWindow;
             EngineeringDocument documentForTab = (EngineeringDocument)SpiritMainWindow.GetDocumentForTab(dockWindow);
@@ -265,39 +209,6 @@ namespace ShareCad
             }
 
             return recentIP.ToString();
-        }
-
-        public static SharedDocument StartSharedDocument(EngineeringDocument document)
-        {
-            if (NetworkManager is null)
-            {
-                NetworkManager = new NetworkManager();
-            }
-
-            int port = NetworkManager.StartServer();
-            Log.Print($"Started server at port {port}");
-
-            MessageBoxManager.ShowInfo($"Shared document on {GetLocalIPAddress()}:{port}", "IP Address and port");
-
-            return ConnectSharedDocument(document, new IPEndPoint(IPAddress.Loopback, port));
-        }
-
-        static SharedDocument ConnectSharedDocument(EngineeringDocument document, IPEndPoint targetEndpoint)
-        {
-            if (NetworkManager is null)
-            {
-                NetworkManager = new NetworkManager();
-            }
-
-            NetworkClient client = NetworkManager.InstantiateClient(targetEndpoint);
-
-            client.OnConnectFinished += Client_OnConnectFinished;
-            client.Connect();
-
-            SharedDocument sharedDocument = new SharedDocument(document, client, Log);
-            sharedDocuments.Add(sharedDocument);
-
-            return sharedDocument;
         }
 
         static void Client_OnConnectFinished(NetworkClient.ConnectStatus obj)

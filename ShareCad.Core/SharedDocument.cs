@@ -19,7 +19,7 @@ using Ptc.Serialization;
 using ShareCad.Networking;
 using ShareCad.Networking.Packets;
 
-namespace ShareCad
+namespace ShareCad.Core
 {
     /// <summary>
     /// A SharedDocument reference is associated with an EngineeringDocument instance.

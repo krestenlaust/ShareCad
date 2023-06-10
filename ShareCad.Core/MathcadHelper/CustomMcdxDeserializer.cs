@@ -14,7 +14,7 @@ using Ptc.Xml;
 
 [module: UnverifiableCode]
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
-namespace ShareCad
+namespace ShareCad.Core
 {
     public class CustomMcdxDeserializer : IDeS11NProvider, IDisposable
     {
