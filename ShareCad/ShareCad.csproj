@@ -143,12 +143,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BootlegResourceManager.cs" />
-    <Compile Include="InquireIP.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="InquireIP.Designer.cs">
-      <DependentUpon>InquireIP.cs</DependentUpon>
-    </Compile>
     <Compile Include="Old stuff\ManipulateSingleRegionsOld.cs" />
     <Compile Include="MathcadHelper\CustomMcdxDeserializer.cs" />
     <Compile Include="ManipulateWorksheet.cs" />
@@ -184,9 +178,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="InquireIP.resx">
-      <DependentUpon>InquireIP.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <SubType>Designer</SubType>
