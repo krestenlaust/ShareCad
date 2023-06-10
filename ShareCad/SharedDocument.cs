@@ -709,7 +709,7 @@ namespace ShareCad
 
                 return crosshair;
             }
-            
+
             void RemoveCrosshairOnPage(Crosshair crosshair, int pageIndex)
             {
                 if (crosshair is null)
@@ -743,7 +743,7 @@ namespace ShareCad
                 return GetPageByGridPosition(gridPosition);
             }
 
-            void Destroy()
+            public void Destroy()
             {
                 foreach (var item in crosshairInstances)
                 {

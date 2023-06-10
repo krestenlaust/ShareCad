@@ -8,6 +8,7 @@ using Ptc.Calculation.Core;
 using Ptc.Controls;
 using Ptc.Controls.Core;
 using Ptc.Controls.Core.Serialization;
+using Ptc.Controls.Core.Whiteboard;
 using Ptc.Controls.ExcelComponent;
 using Ptc.Controls.Include;
 using Ptc.Controls.Worksheet;
