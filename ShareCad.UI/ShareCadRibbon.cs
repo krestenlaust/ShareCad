@@ -14,6 +14,14 @@ namespace ShareCad.UI
     /// </summary>
     public static class ShareCadRibbon
     {
+        // Collaborator management ribbonbar
+        public static event Action StopSharingPressed;
+
+        // General liveshare ribbonbar
+        public static event Action ShareNewDocumentPressed;
+        public static event Action ShareCurrentDocumentPressed;
+        public static event Action ConnectToDocumentPressed;
+
         public static ButtonPanel CreateButtonPanel()
         {
             return new ButtonPanel
@@ -69,8 +77,8 @@ namespace ShareCad.UI
         public static void ExtendRibbonControl(Ribbon ribbon)
         {
             RibbonBarPanel ribbonBarPanel = new RibbonBarPanel();
-            ribbonBarPanel.Children.Add(new LiveShare_GeneralRibbonBar());
-            ribbonBarPanel.Children.Add(new LiveShare_CollaboratorManager());
+            ribbonBarPanel.Children.Add(new GeneralLiveShareRibbonBar(ShareNewDocumentPressed, ShareCurrentDocumentPressed, ConnectToDocumentPressed));
+            ribbonBarPanel.Children.Add(new CollaboratorManagementBar(StopSharingPressed));
 
             RibbonTab ribbonTab = new RibbonTab
             {

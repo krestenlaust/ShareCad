@@ -1,15 +1,12 @@
-﻿using ShareCad.Networking;
-using DevComponents.WpfRibbon;
+﻿using DevComponents.WpfRibbon;
 using static ShareCad.UI.ShareCadRibbon;
-//using Spirit;
-//using Ptc.Wpf;
-//using Ptc.Controls;
+using System;
 
 namespace ShareCad.UI
 {
-    public class LiveShare_CollaboratorManager : StylisedRibbonBar
+    public class CollaboratorManagementBar : StylisedRibbonBar
     {
-        public LiveShare_CollaboratorManager() : base()
+        public CollaboratorManagementBar(Action stopSharingPressed) : base()
         {
             Header = "Collaborators";
 
@@ -19,10 +16,8 @@ namespace ShareCad.UI
             ButtonEx disconnectAllButton = CreateButtonEx(
                 "Stop sharing",
                 null,
-                delegate
-                {
-                    ShareCad.NetworkManager.Stop();
-                });
+                delegate { stopSharingPressed(); }
+            );
             panel.Children.Add(disconnectAllButton);
         }
     }

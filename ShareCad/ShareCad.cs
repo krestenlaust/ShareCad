@@ -42,7 +42,7 @@ namespace ShareCad
         public static NetworkFunction? NewDocumentAction = null;
         public static IPAddress NewDocumentIP = IPAddress.Loopback;
         public static int NewDocumentPort = NetworkManager.DefaultPort;
-        
+
         /// <summary>
         /// Sand, når modulet er initializeret.
         /// </summary>
@@ -89,9 +89,59 @@ namespace ShareCad
             harmony.PatchAll(Assembly.GetExecutingAssembly());
 
             ShareCadRibbon.ExtendRibbonControl(GetRibbon());
+            ShareCadRibbon.StopSharingPressed += ShareCadRibbon_StopSharingPressed;
+            ShareCadRibbon.ShareCurrentDocumentPressed += ShareCadRibbon_ShareCurrentDocumentPressed;
+            ShareCadRibbon.ShareNewDocumentPressed += ShareCadRibbon_ShareNewDocumentPressed;
+            ShareCadRibbon.ConnectToDocumentPressed += ShareCadRibbon_ConnectToDocumentPressed;
 
             Log.Print("LOADED!");
             initializedModule = true;
+        }
+
+        private void ShareCadRibbon_ConnectToDocumentPressed()
+        {
+            InquireIP result = new InquireIP();
+
+            var dlgResult = result.Show(WpfUtils.ApplicationFullName);
+            if (dlgResult != System.Windows.Forms.DialogResult.OK)
+            {
+                return;
+            }
+
+            NewDocumentIP = result.IP;
+            NewDocumentPort = result.Port;
+            NewDocumentAction = NetworkFunction.Guest;
+            AppCommands.NewEngineeringDocument.Execute(null, SpiritMainWindow);
+        }
+
+        private void ShareCadRibbon_ShareNewDocumentPressed()
+        {
+            NewDocumentAction = NetworkFunction.Host;
+            AppCommands.NewEngineeringDocument.Execute(null, SpiritMainWindow);
+        }
+
+        private void ShareCadRibbon_ShareCurrentDocumentPressed()
+        {
+            EngineeringDocument currentDocument = GetCurrentTabDocument();
+
+            if (!(GetSharedDocumentByEngineeringDocument(currentDocument) is null))
+            {
+                Console.WriteLine("Already shared");
+                return;
+            }
+
+            if (currentDocument is null)
+            {
+                return;
+            }
+
+            var sharedDoc = StartSharedDocument(currentDocument);
+            NetworkManager.FocusedClient = sharedDoc.NetworkClient;
+        }
+
+        private void ShareCadRibbon_StopSharingPressed()
+        {
+            NetworkManager.Stop();
         }
 
         void SpiritMainWindow_Closed(object sender, EventArgs e)
@@ -194,7 +244,7 @@ namespace ShareCad
             else
             {
                 Log.Print("Guest document");
-                
+
                 sharedDocument = ConnectSharedDocument(newDocument, new IPEndPoint(NewDocumentIP, NewDocumentPort));
             }
 
