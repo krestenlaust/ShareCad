@@ -38,9 +38,9 @@ namespace ShareCad
         public delegate Stream LoadAsset(int id);
 
         public CustomMcdxDeserializer(
-            IDeserializationStrategy deserializationStrategy, 
-            ISerializationHelper serializationHelper, 
-            IRegionCollectionSerializer regionCollectionSerializer, 
+            IDeserializationStrategy deserializationStrategy,
+            ISerializationHelper serializationHelper,
+            IRegionCollectionSerializer regionCollectionSerializer,
             bool useOverrides,
             LoadAsset loadAsset)
         {
@@ -81,11 +81,11 @@ namespace ShareCad
             {
                 _xmlContentDocument = new XmlDocument();
                 SpiritResolver.InitializeDocument(_xmlContentDocument, SchemasManager.Worksheet50);
-                
+
                 _xmlContentDocument.LoadXml(xml);
                 RepairXmlDocument(_xmlContentDocument);
                 _xmlContentDocument.Validate(null);
-                
+
                 Deserialize(_xmlContentDocument);
             }
             catch (Exception ex)

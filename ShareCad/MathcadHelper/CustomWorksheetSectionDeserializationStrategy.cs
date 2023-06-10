@@ -18,8 +18,8 @@ namespace ShareCad
         public CustomWorksheetSectionDeserializationStrategy(IWorksheetSectionPersistentData sectionData, IMathFormat mathFormat, IDictionary<IdLabels, ExtendedFont> labeledIdFormat)
         {
             _worksheetSectionData = sectionData;
-            base.DeserializeMathFormat = mathFormat;
-            base.DeserializeLabeledIdFormat = labeledIdFormat;
+            DeserializeMathFormat = mathFormat;
+            DeserializeLabeledIdFormat = labeledIdFormat;
         }
 
         public override void DeserializeRegionProlog(UIElement region)

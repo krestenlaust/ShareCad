@@ -147,7 +147,7 @@ namespace ShareCad.Networking
                             break;
                         case DocumentUpdate documentUpdate:
                             currentCollaborator.Document = documentUpdate.XmlDocument;
-                            
+
                             UpdateDocumentAll(documentUpdate.XmlDocument, currentCollaborator.ID);
                             documentSent = true;
                             currentDocument = documentUpdate.XmlDocument;
@@ -191,7 +191,7 @@ namespace ShareCad.Networking
             disconnectedClients.Clear();
         }
 
-        void SendPacketAll(byte[] packet, byte ignoreID=byte.MaxValue)
+        void SendPacketAll(byte[] packet, byte ignoreID = byte.MaxValue)
         {
             foreach (var item in clients)
             {
@@ -217,7 +217,7 @@ namespace ShareCad.Networking
             }
         }
 
-        void UpdateDocumentAll(XmlDocument newDocument, byte ignoreID=byte.MaxValue)
+        void UpdateDocumentAll(XmlDocument newDocument, byte ignoreID = byte.MaxValue)
         {
             DocumentUpdate packet = new DocumentUpdate(newDocument);
             byte[] serializedPacket = packet.Serialize();
