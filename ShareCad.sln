@@ -20,6 +20,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Patcher", "Patcher\Patcher.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShareCad.Networking.Tests", "ShareCad.Networking.Tests\ShareCad.Networking.Tests.csproj", "{CA0B0154-8E3D-4912-B0BA-3DB545E782C2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShareCad.UI", "ShareCad.UI\ShareCad.UI.csproj", "{BCDAA12C-45AC-45CD-8961-9D11B6917153}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug Mathcad|Any CPU = Debug Mathcad|Any CPU
@@ -76,6 +78,14 @@ Global
 		{CA0B0154-8E3D-4912-B0BA-3DB545E782C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CA0B0154-8E3D-4912-B0BA-3DB545E782C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CA0B0154-8E3D-4912-B0BA-3DB545E782C2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BCDAA12C-45AC-45CD-8961-9D11B6917153}.Debug Mathcad|Any CPU.ActiveCfg = Debug|Any CPU
+		{BCDAA12C-45AC-45CD-8961-9D11B6917153}.Debug Mathcad|Any CPU.Build.0 = Debug|Any CPU
+		{BCDAA12C-45AC-45CD-8961-9D11B6917153}.Debug Network|Any CPU.ActiveCfg = Debug|Any CPU
+		{BCDAA12C-45AC-45CD-8961-9D11B6917153}.Debug Network|Any CPU.Build.0 = Debug|Any CPU
+		{BCDAA12C-45AC-45CD-8961-9D11B6917153}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BCDAA12C-45AC-45CD-8961-9D11B6917153}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BCDAA12C-45AC-45CD-8961-9D11B6917153}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BCDAA12C-45AC-45CD-8961-9D11B6917153}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

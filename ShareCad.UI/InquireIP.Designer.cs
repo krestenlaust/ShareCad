@@ -1,5 +1,5 @@
 ﻿
-namespace ShareCad
+namespace ShareCad.UI
 {
     partial class InquireIP
     {
@@ -95,8 +95,8 @@ namespace ShareCad
             // pictureBoxIcon
             // 
             this.pictureBoxIcon.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.pictureBoxIcon.Image = global::ShareCad.Properties.Resources.ip_icon;
-            this.pictureBoxIcon.InitialImage = global::ShareCad.Properties.Resources.ip_icon;
+            this.pictureBoxIcon.Image = global::ShareCad.UI.Properties.Resources.ip_icon;
+            this.pictureBoxIcon.InitialImage = global::ShareCad.UI.Properties.Resources.ip_icon;
             this.pictureBoxIcon.Location = new System.Drawing.Point(12, 12);
             this.pictureBoxIcon.Name = "pictureBoxIcon";
             this.pictureBoxIcon.Size = new System.Drawing.Size(52, 52);

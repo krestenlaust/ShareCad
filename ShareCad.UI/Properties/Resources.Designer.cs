@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace ShareCad.Properties {
+namespace ShareCad.UI.Properties {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace ShareCad.Properties {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("ShareCad.Properties.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("ShareCad.UI.Properties.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -63,9 +63,9 @@ namespace ShareCad.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap connect_icon {
+        internal static System.Drawing.Bitmap download_icon {
             get {
-                object obj = ResourceManager.GetObject("connect_icon", resourceCulture);
+                object obj = ResourceManager.GetObject("download_icon", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -73,9 +73,19 @@ namespace ShareCad.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap noconnect_icon {
+        internal static System.Drawing.Bitmap ip_icon {
             get {
-                object obj = ResourceManager.GetObject("noconnect_icon", resourceCulture);
+                object obj = ResourceManager.GetObject("ip_icon", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap upload_icon {
+            get {
+                object obj = ResourceManager.GetObject("upload_icon", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
