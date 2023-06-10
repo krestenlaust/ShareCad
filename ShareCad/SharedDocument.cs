@@ -121,7 +121,7 @@ namespace ShareCad
                     UpdateConnectionStatus(NetworkClient.HostClient.Connected);
                 }
             });
-            
+
             RemoteUpdateCursorPosition();
         }
 

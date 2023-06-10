@@ -18,6 +18,7 @@ using Ptc.Serialization;
 using Ptc.Wpf;
 using ShareCad.Logging;
 using ShareCad.Networking;
+using ShareCad.UI;
 using Spirit;
 
 [module: UnverifiableCode]
@@ -63,7 +64,7 @@ namespace ShareCad
             args = new string[] { "-share", "-log" };
             //args = Environment.GetCommandLineArgs();
             // ...
-            
+
             List<Modes> modes = ParseCommandlineArguments(args);
 
             if (!modes.Contains(Modes.ShareMode))
@@ -87,7 +88,7 @@ namespace ShareCad
             var harmony = new Harmony("ShareCad");
             harmony.PatchAll(Assembly.GetExecutingAssembly());
 
-            ShareCadRibbonParts.ExtendRibbonControl(GetRibbon());
+            ShareCadRibbon.ExtendRibbonControl(GetRibbon());
 
             Log.Print("LOADED!");
             initializedModule = true;
