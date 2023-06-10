@@ -15,7 +15,7 @@ using Ptc.Controls.Worksheet;
 using Ptc.PersistentData;
 using Ptc.Serialization;
 
-namespace ShareCad
+namespace ShareCad.Core
 {
     public static class WorksheetControlExtensions
     {

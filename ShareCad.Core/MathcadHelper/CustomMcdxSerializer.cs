@@ -16,7 +16,7 @@ using Ptc.Serialization;
 using Ptc.Wpf;
 using Ptc.Xml;
 
-namespace ShareCad
+namespace ShareCad.Core
 {
     public class CustomMcdxSerializer : IS11NProvider, IBaseS11NProvider
     {

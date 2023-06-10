@@ -7,7 +7,7 @@ using Ptc.Controls.Worksheet;
 using Ptc.PersistentDataObjects;
 using Ptc.Serialization;
 
-namespace ShareCad
+namespace ShareCad.Core
 {
     public class CustomWorksheetSectionSerializationStrategy : ISerializationStrategy
     {
