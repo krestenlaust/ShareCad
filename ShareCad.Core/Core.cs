@@ -7,51 +7,16 @@ using System.Net;
 
 namespace ShareCad.Core
 {
-    public static class Core
+    public class Core
     {
-        static readonly IList<SharedDocument> sharedDocuments = new List<SharedDocument>();
+        readonly IList<SharedDocument> sharedDocuments = new List<SharedDocument>();
 
-        public static SharedDocument GetSharedDocumentByEngineeringDocument(EngineeringDocument doc)
+        public Core()
         {
-            return (from document in sharedDocuments
-                    where document.Document == doc
-                    select document).FirstOrDefault();
+
         }
 
-        public static SharedDocument StartSharedDocument(EngineeringDocument document)
-        {
-            if (NetworkManager is null)
-            {
-                NetworkManager = new NetworkManager();
-            }
-
-            int port = NetworkManager.StartServer();
-            Log.Print($"Started server at port {port}");
-
-            MessageBoxManager.ShowInfo($"Shared document on {GetLocalIPAddress()}:{port}", "IP Address and port");
-
-            return ConnectSharedDocument(document, new IPEndPoint(IPAddress.Loopback, port));
-        }
-
-        static SharedDocument ConnectSharedDocument(EngineeringDocument document, IPEndPoint targetEndpoint)
-        {
-            if (NetworkManager is null)
-            {
-                NetworkManager = new NetworkManager();
-            }
-
-            NetworkClient client = NetworkManager.InstantiateClient(targetEndpoint);
-
-            client.OnConnectFinished += Client_OnConnectFinished;
-            client.Connect();
-
-            SharedDocument sharedDocument = new SharedDocument(document, client, Log);
-            sharedDocuments.Add(sharedDocument);
-
-            return sharedDocument;
-        }
-
-        public static void ShareCadRibbon_ConnectToDocumentPressed()
+        public void ShareCadRibbon_ConnectToDocumentPressed()
         {
             InquireIP result = new InquireIP();
 
@@ -67,13 +32,13 @@ namespace ShareCad.Core
             AppCommands.NewEngineeringDocument.Execute(null, SpiritMainWindow);
         }
 
-        public static void ShareCadRibbon_ShareNewDocumentPressed()
+        public void ShareCadRibbon_ShareNewDocumentPressed()
         {
             NewDocumentAction = NetworkFunction.Host;
             AppCommands.NewEngineeringDocument.Execute(null, SpiritMainWindow);
         }
 
-        public static void ShareCadRibbon_ShareCurrentDocumentPressed()
+        public void ShareCadRibbon_ShareCurrentDocumentPressed()
         {
             EngineeringDocument currentDocument = GetCurrentTabDocument();
 
@@ -92,14 +57,54 @@ namespace ShareCad.Core
             NetworkManager.FocusedClient = sharedDoc.NetworkClient;
         }
 
-        public static void ShareCadRibbon_StopSharingPressed()
+        public void ShareCadRibbon_StopSharingPressed()
         {
             NetworkManager.Stop();
         }
 
-        internal static void DecoupleSharedDocument(SharedDocument sharedDocument)
+        internal void DecoupleSharedDocument(SharedDocument sharedDocument)
         {
             sharedDocuments.Remove(sharedDocument);
+        }
+
+        SharedDocument GetSharedDocumentByEngineeringDocument(EngineeringDocument doc)
+        {
+            return (from document in sharedDocuments
+                    where document.Document == doc
+                    select document).FirstOrDefault();
+        }
+
+        SharedDocument StartSharedDocument(EngineeringDocument document)
+        {
+            if (NetworkManager is null)
+            {
+                NetworkManager = new NetworkManager();
+            }
+
+            int port = NetworkManager.StartServer();
+            Log.Print($"Started server at port {port}");
+
+            MessageBoxManager.ShowInfo($"Shared document on {GetLocalIPAddress()}:{port}", "IP Address and port");
+
+            return ConnectSharedDocument(document, new IPEndPoint(IPAddress.Loopback, port));
+        }
+
+        SharedDocument ConnectSharedDocument(EngineeringDocument document, IPEndPoint targetEndpoint)
+        {
+            if (NetworkManager is null)
+            {
+                NetworkManager = new NetworkManager();
+            }
+
+            NetworkClient client = NetworkManager.InstantiateClient(targetEndpoint);
+
+            client.OnConnectFinished += Client_OnConnectFinished;
+            client.Connect();
+
+            SharedDocument sharedDocument = new SharedDocument(document, client, Log);
+            sharedDocuments.Add(sharedDocument);
+
+            return sharedDocument;
         }
     }
 }
