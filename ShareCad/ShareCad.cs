@@ -54,14 +54,11 @@ namespace ShareCad
         public void ShareCadInit()
         {
             if (initializedModule)
+            {
                 return;
+            }
 
-            // TODO: Hej Alexander, jeg gad godt have nogle command line arguments her.
-            string[] args;
-            // ...
-            args = new string[] { "-share", "-log" };
-            //args = Environment.GetCommandLineArgs();
-            // ...
+            string[] args = Environment.GetCommandLineArgs();
 
             List<Modes> modes = ParseCommandlineArguments(args);
 
