@@ -96,5 +96,10 @@ namespace ShareCad.Core
         {
             NetworkManager.Stop();
         }
+
+        internal static void DecoupleSharedDocument(SharedDocument sharedDocument)
+        {
+            sharedDocuments.Remove(sharedDocument);
+        }
     }
 }

@@ -156,11 +156,6 @@ namespace ShareCad
             sharedDocument.NetworkClient.Update();
         }
 
-        internal static void DecoupleSharedDocument(SharedDocument sharedDocument)
-        {
-            sharedDocuments.Remove(sharedDocument);
-        }
-
         /// <summary>
         /// Initialisérer konkrete funktionaliteter forbundet med det nye dokument.
         /// </summary>
